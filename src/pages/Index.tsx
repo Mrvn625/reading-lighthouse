@@ -1,8 +1,8 @@
 
 import { Button } from "@/components/ui/button";
-import { PageLayout } from "@/components/layout/PageLayout";
-import { PageHeader } from "@/components/ui/page-header";
-import { Section } from "@/components/ui/section";
+import PageLayout from "@/components/layout/PageLayout";
+import PageHeader from "@/components/ui/page-header";
+import Section from "@/components/ui/section";
 import { Link } from "react-router-dom";
 
 const Index = () => {
