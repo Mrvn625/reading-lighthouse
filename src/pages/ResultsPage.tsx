@@ -1,388 +1,495 @@
 
-import { useState } from "react";
-import { Link } from "react-router-dom";
+import { useState, useEffect } from "react";
 import PageLayout from "@/components/layout/PageLayout";
 import PageHeader from "@/components/ui/page-header";
 import Section from "@/components/ui/section";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { FileText, Share2, Download, Printer, ArrowLeft } from "lucide-react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Progress } from "@/components/ui/progress";
+import { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Legend, LineChart, Line } from "recharts";
+import { FileText, Percent, Calendar, BarChart2, PenTool, BrainCircuit, CheckSquare, Download } from "lucide-react";
+import { Separator } from "@/components/ui/separator";
+import { useToast } from "@/components/ui/use-toast";
+
+// Mock data for demonstration
+const mockUserData = {
+  firstName: "Alex",
+  lastName: "Morgan",
+  age: 12,
+  grade: "6th Grade",
+  completedAssessments: [
+    { type: "Handwriting Analysis", date: new Date(2024, 2, 15), result: 68 },
+    { type: "Symptom Checklist", date: new Date(2024, 2, 16), result: 75 },
+    { type: "Phonological Awareness", date: new Date(2024, 2, 17), result: 62 },
+    { type: "RAN Test", date: new Date(2024, 2, 17), result: 58 },
+    { type: "Working Memory", date: new Date(2024, 2, 18), result: 70 },
+    { type: "Processing Speed", date: new Date(2024, 2, 18), result: 65 },
+  ]
+};
+
+// Tests results storage - in a real app, this would come from backend/localStorage
+const mockTestResults = {
+  handwriting: {
+    overallScore: 68,
+    letterFormation: { score: 3, description: "Inconsistent letter formation with occasional reversals" },
+    letterSpacing: { score: 4, description: "Generally good spacing between letters with minor inconsistencies" },
+    lineAlignment: { score: 3, description: "Some difficulty maintaining alignment with the line" },
+    letterReversals: { score: 2, description: "Several instances of reversed letters (b/d, p/q)" },
+    completed: true,
+    date: new Date(2024, 2, 15)
+  },
+  checklist: {
+    total: 75,
+    reading: 80,
+    writing: 70,
+    speaking: 65,
+    organization: 85,
+    completed: true,
+    date: new Date(2024, 2, 16)
+  },
+  cognitive: {
+    phonological: 62,
+    ran: 58,
+    workingMemory: 70,
+    processingSpeed: 65,
+    completed: true,
+    date: new Date(2024, 2, 18)
+  },
+  summary: {
+    overallRisk: "Moderate",
+    strengths: ["Working memory", "Organization skills", "Verbal comprehension"],
+    challenges: ["Phonological awareness", "Processing speed", "Letter reversals"],
+    recommendations: [
+      "Reading interventions focusing on phonological awareness",
+      "Regular handwriting practice with specialized materials",
+      "Accommodations such as extended time for reading tasks",
+      "Consider formal assessment by educational psychologist",
+    ]
+  }
+};
+
+const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8', '#82ca9d'];
 
 const ResultsPage = () => {
-  const [activeTab, setActiveTab] = useState("overview");
+  const [activeTab, setActiveTab] = useState("summary");
+  const { toast } = useToast();
 
-  // Simulated test results data
-  const testResults = {
-    handwriting: {
-      score: 68,
-      letterFormation: 3,
-      letterSpacing: 2,
-      lineAlignment: 4,
-      letterReversals: 3,
-      completed: true,
-      date: "2023-09-15"
-    },
-    checklist: {
-      score: 72,
-      reading: 75,
-      writing: 80,
-      language: 65,
-      cognitive: 68,
-      completed: true,
-      date: "2023-09-16"
-    },
-    cognitive: {
-      phonological: 65,
-      ran: 58,
-      workingMemory: 70,
-      processingSpeed: 62,
-      completed: false,
-      date: null
-    },
-    overall: 70
+  // In a real app, we would fetch this data from an API or local storage
+  const userData = mockUserData;
+  const testResults = mockTestResults;
+
+  const handleDownloadReport = () => {
+    // In a real app, this would generate a PDF
+    toast({
+      title: "Report Downloaded",
+      description: "Your assessment report has been downloaded as a PDF",
+    });
   };
+
+  const calculateCognitiveAverage = () => {
+    const { phonological, ran, workingMemory, processingSpeed } = testResults.cognitive;
+    return Math.round((phonological + ran + workingMemory + processingSpeed) / 4);
+  };
+
+  // Data for charts
+  const pieData = [
+    { name: "Handwriting", value: testResults.handwriting.overallScore },
+    { name: "Checklist", value: testResults.checklist.total },
+    { name: "Cognitive", value: calculateCognitiveAverage() }
+  ];
+
+  const barData = [
+    { name: "Phonological", score: testResults.cognitive.phonological },
+    { name: "RAN", score: testResults.cognitive.ran },
+    { name: "Working Memory", score: testResults.cognitive.workingMemory },
+    { name: "Processing Speed", score: testResults.cognitive.processingSpeed }
+  ];
 
   return (
     <PageLayout>
       <div className="dyslexai-container">
         <PageHeader
           title="Assessment Results"
-          description="A comprehensive overview of your dyslexia assessment results"
-          icon={<FileText className="h-10 w-10" />}
+          description="Comprehensive overview of your dyslexia assessment results"
+          icon={<Percent className="h-10 w-10" />}
         />
 
-        <div className="max-w-4xl mx-auto">
-          <Tabs defaultValue="overview" value={activeTab} onValueChange={setActiveTab} className="mb-8">
+        <div className="max-w-6xl mx-auto">
+          <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200 mb-8">
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <h2 className="text-xl font-bold text-dyslexai-blue-700">
+                  {userData.firstName} {userData.lastName}
+                </h2>
+                <p className="text-gray-600">
+                  {userData.age} years old | {userData.grade}
+                </p>
+              </div>
+              <Button onClick={handleDownloadReport} className="flex items-center gap-2">
+                <Download className="h-4 w-4" />
+                Download Full Report
+              </Button>
+            </div>
+
+            <div className="flex flex-wrap gap-3 mb-2">
+              {userData.completedAssessments.map((assessment, index) => (
+                <div key={index} className="flex items-center gap-1 text-sm px-3 py-1 rounded-full bg-dyslexai-blue-50 text-dyslexai-blue-600">
+                  {assessment.type}
+                  <span className="text-xs text-gray-500">
+                    ({assessment.date.toLocaleDateString()})
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
             <TabsList className="grid grid-cols-4 mb-8">
-              <TabsTrigger value="overview">Overview</TabsTrigger>
-              <TabsTrigger value="handwriting">Handwriting</TabsTrigger>
-              <TabsTrigger value="checklist">Checklist</TabsTrigger>
-              <TabsTrigger value="cognitive">Cognitive Tests</TabsTrigger>
+              <TabsTrigger value="summary" className="flex items-center gap-2">
+                <FileText className="h-4 w-4" />
+                Summary
+              </TabsTrigger>
+              <TabsTrigger value="handwriting" className="flex items-center gap-2">
+                <PenTool className="h-4 w-4" />
+                Handwriting
+              </TabsTrigger>
+              <TabsTrigger value="checklist" className="flex items-center gap-2">
+                <CheckSquare className="h-4 w-4" />
+                Checklist
+              </TabsTrigger>
+              <TabsTrigger value="cognitive" className="flex items-center gap-2">
+                <BrainCircuit className="h-4 w-4" />
+                Cognitive Tests
+              </TabsTrigger>
             </TabsList>
-            
-            <TabsContent value="overview">
-              <Section>
-                <div className="bg-white rounded-xl shadow-md p-6 border border-dyslexai-blue-100 mb-8">
-                  <div className="flex justify-between items-center mb-4">
-                    <h2 className="text-2xl font-bold text-dyslexai-blue-700">Overall Assessment</h2>
-                    <div className="flex space-x-2">
-                      <Button variant="outline" size="sm" className="flex items-center">
-                        <Share2 className="mr-2 h-4 w-4" />
-                        Share
-                      </Button>
-                      <Button variant="outline" size="sm" className="flex items-center">
-                        <Download className="mr-2 h-4 w-4" />
-                        Download
-                      </Button>
-                      <Button variant="outline" size="sm" className="flex items-center">
-                        <Printer className="mr-2 h-4 w-4" />
-                        Print
-                      </Button>
-                    </div>
-                  </div>
-                  
-                  <div className="mb-6">
-                    <div className="flex justify-between items-center mb-2">
-                      <span className="font-medium">Overall Dyslexia Indicator Score</span>
-                      <span className="font-bold text-lg">{testResults.overall}%</span>
-                    </div>
-                    <Progress value={testResults.overall} className="h-3" />
-                    
-                    <div className="mt-4 p-4 bg-dyslexai-blue-50 rounded-lg">
-                      <h4 className="font-bold text-dyslexai-blue-700 mb-2">What This Score Means</h4>
-                      <p className="text-gray-700">
-                        {testResults.overall >= 70
-                          ? "Your results indicate several patterns commonly associated with dyslexia. While this is not a diagnosis, it suggests that further professional assessment may be beneficial."
-                          : testResults.overall >= 40
-                          ? "Your results show some patterns that could be associated with dyslexia. Consider exploring these areas further with additional assessments or with an educational professional."
-                          : "Your results show few patterns typically associated with dyslexia. If you're still concerned, consider consulting with an educational professional."}
-                      </p>
-                    </div>
-                  </div>
-                  
-                  <div className="space-y-4">
-                    <h3 className="text-xl font-bold text-dyslexai-blue-700 mb-2">Assessment Summary</h3>
-                    
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                      <TestResultCard
-                        title="Handwriting Analysis"
-                        score={testResults.handwriting.score}
-                        completed={testResults.handwriting.completed}
-                        date={testResults.handwriting.date}
-                        onClick={() => setActiveTab("handwriting")}
-                      />
-                      
-                      <TestResultCard
-                        title="Checklist Assessment"
-                        score={testResults.checklist.score}
-                        completed={testResults.checklist.completed}
-                        date={testResults.checklist.date}
-                        onClick={() => setActiveTab("checklist")}
-                      />
-                      
-                      <TestResultCard
-                        title="Cognitive Tests"
-                        score={testResults.cognitive.completed ? testResults.cognitive.score : null}
-                        completed={testResults.cognitive.completed}
-                        date={testResults.cognitive.date}
-                        onClick={() => setActiveTab("cognitive")}
-                      />
-                    </div>
-                  </div>
+
+            <TabsContent value="summary">
+              <Section title="Assessment Summary">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                  <Card>
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-lg text-dyslexai-blue-700">Overall Assessment</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="h-72">
+                        <ResponsiveContainer width="100%" height="100%">
+                          <PieChart>
+                            <Pie
+                              data={pieData}
+                              cx="50%"
+                              cy="50%"
+                              labelLine={true}
+                              label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                              outerRadius={80}
+                              fill="#8884d8"
+                              dataKey="value"
+                            >
+                              {pieData.map((entry, index) => (
+                                <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                              ))}
+                            </Pie>
+                            <Tooltip formatter={(value) => [`${value}%`, "Score"]} />
+                            <Legend />
+                          </PieChart>
+                        </ResponsiveContainer>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-lg text-dyslexai-blue-700">Risk Assessment</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="mb-4">
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="font-medium">Overall Risk Level:</span>
+                          <span className="px-3 py-1 rounded-full bg-amber-100 text-amber-700 font-medium">
+                            {testResults.summary.overallRisk}
+                          </span>
+                        </div>
+                        <p className="text-gray-600 text-sm">
+                          Based on combined results from all assessments, there are indicators of moderate dyslexia risk.
+                          We recommend further evaluation by an educational specialist.
+                        </p>
+                      </div>
+
+                      <div className="mb-4">
+                        <h4 className="font-medium mb-2">Strengths:</h4>
+                        <ul className="list-disc pl-5 space-y-1">
+                          {testResults.summary.strengths.map((strength, index) => (
+                            <li key={index} className="text-gray-700">{strength}</li>
+                          ))}
+                        </ul>
+                      </div>
+
+                      <div>
+                        <h4 className="font-medium mb-2">Challenges:</h4>
+                        <ul className="list-disc pl-5 space-y-1">
+                          {testResults.summary.challenges.map((challenge, index) => (
+                            <li key={index} className="text-gray-700">{challenge}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    </CardContent>
+                  </Card>
                 </div>
-                
-                <div className="bg-white rounded-xl shadow-md p-6 border border-dyslexai-blue-100">
-                  <h3 className="text-xl font-bold text-dyslexai-blue-700 mb-4">Next Steps</h3>
-                  
-                  <div className="space-y-6">
-                    <NextStepCard
-                      title="Complete Remaining Assessments"
-                      description="Finish any incomplete tests to get a more comprehensive evaluation"
-                      actionText="View Incomplete Tests"
-                      actionLink="/cognitive-tests"
-                      highlight={!testResults.cognitive.completed}
-                    />
-                    
-                    <NextStepCard
-                      title="Consider Professional Evaluation"
-                      description="Connect with educational psychologists or specialists for formal diagnosis"
-                      actionText="Find Resources"
-                      actionLink="/resources"
-                    />
-                    
-                    <NextStepCard
-                      title="Explore Support Strategies"
-                      description="Discover evidence-based approaches to support learning with dyslexia"
-                      actionText="View Strategies"
-                      actionLink="/strategies"
-                    />
-                  </div>
-                </div>
+
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-lg text-dyslexai-blue-700">Recommendations</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
+                      {testResults.summary.recommendations.map((recommendation, index) => (
+                        <div key={index} className="flex items-start">
+                          <div className="bg-dyslexai-blue-100 text-dyslexai-blue-700 rounded-full w-6 h-6 flex items-center justify-center font-bold mr-3 mt-0.5 flex-shrink-0">
+                            {index + 1}
+                          </div>
+                          <span className="text-gray-700">{recommendation}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
               </Section>
             </TabsContent>
-            
+
             <TabsContent value="handwriting">
               <Section title="Handwriting Analysis Results">
                 <div className="bg-white rounded-xl shadow-md p-6 border border-dyslexai-blue-100">
-                  <h3 className="text-xl font-bold text-dyslexai-blue-700 mb-4">Handwriting Assessment</h3>
+                  <div className="flex flex-col md:flex-row justify-between mb-6">
+                    <div>
+                      <h3 className="text-xl font-bold text-dyslexai-blue-700 mb-2">Handwriting Assessment</h3>
+                      <p className="text-gray-600">
+                        Completed on {testResults.handwriting.date.toLocaleDateString()}
+                      </p>
+                    </div>
+                    <div className="mt-4 md:mt-0 flex items-center">
+                      <div className="bg-dyslexai-blue-500 text-white rounded-full h-16 w-16 flex items-center justify-center mr-4">
+                        <span className="text-xl font-bold">{testResults.handwriting.overallScore}%</span>
+                      </div>
+                      <div>
+                        <span className="text-sm text-gray-500">Overall Score</span>
+                        <div className="font-medium">
+                          {testResults.handwriting.overallScore >= 75 ? 
+                            "Low Risk" :
+                            testResults.handwriting.overallScore >= 50 ?
+                            "Moderate Risk" :
+                            "High Risk"
+                          }
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                   
                   <div className="space-y-6">
                     <ResultItem
                       title="Letter Formation"
-                      score={testResults.handwriting.letterFormation}
+                      score={testResults.handwriting.letterFormation.score}
                       maxScore={5}
-                      description="Some inconsistencies in how letters are formed, particularly with 'b', 'd', and 'p'."
+                      description={testResults.handwriting.letterFormation.description}
                     />
                     
                     <ResultItem
                       title="Letter Spacing"
-                      score={testResults.handwriting.letterSpacing}
+                      score={testResults.handwriting.letterSpacing.score}
                       maxScore={5}
-                      description="Irregular spacing between letters and words is evident, which is common in dyslexia."
+                      description={testResults.handwriting.letterSpacing.description}
                     />
                     
                     <ResultItem
                       title="Line Alignment"
-                      score={testResults.handwriting.lineAlignment}
+                      score={testResults.handwriting.lineAlignment.score}
                       maxScore={5}
-                      description="Writing mostly follows the line guides with minor deviations."
+                      description={testResults.handwriting.lineAlignment.description}
                     />
                     
                     <ResultItem
                       title="Letter Reversals"
-                      score={testResults.handwriting.letterReversals}
+                      score={testResults.handwriting.letterReversals.score}
                       maxScore={5}
-                      description="Some instances of letter reversals were detected, particularly with 'b' and 'd'."
+                      description={testResults.handwriting.letterReversals.description}
                     />
                   </div>
                   
                   <div className="mt-8 p-4 bg-dyslexai-blue-50 rounded-lg">
-                    <h4 className="font-bold text-dyslexai-blue-700 mb-2">Analysis Insights</h4>
+                    <h4 className="font-bold text-dyslexai-blue-700 mb-2">Analysis</h4>
                     <p className="text-gray-700">
-                      Your handwriting shows some patterns that are sometimes associated with dyslexia, particularly in letter formation and spacing. These results suggest it may be worth exploring further assessment options.
+                      {testResults.handwriting.overallScore >= 75 ? 
+                        "Your handwriting shows few patterns associated with dyslexia. If you're still concerned, continue with our other assessments to gather more information." :
+                        testResults.handwriting.overallScore >= 50 ?
+                        "Your handwriting shows some patterns that are sometimes associated with dyslexia, particularly in letter formation and spacing. These results suggest it may be worth exploring further assessment options." :
+                        "Your handwriting shows several patterns strongly associated with dyslexia, including letter reversals and inconsistent spacing. We recommend completing our other assessments and considering professional evaluation."
+                      }
                     </p>
-                  </div>
-                  
-                  <div className="mt-6 flex justify-center">
-                    <Button variant="outline" onClick={() => setActiveTab("overview")}>
-                      <ArrowLeft className="mr-2 h-5 w-5" />
-                      Back to Overview
-                    </Button>
                   </div>
                 </div>
               </Section>
             </TabsContent>
-            
+
             <TabsContent value="checklist">
-              <Section title="Checklist Assessment Results">
+              <Section title="Symptom Checklist Results">
                 <div className="bg-white rounded-xl shadow-md p-6 border border-dyslexai-blue-100">
-                  <h3 className="text-xl font-bold text-dyslexai-blue-700 mb-4">Checklist Assessment</h3>
-                  
-                  <div className="space-y-6">
-                    <CategoryResult
-                      title="Reading"
-                      score={testResults.checklist.reading}
-                      description="Your responses indicate moderate difficulties with reading fluency and comprehension."
-                    />
-                    
-                    <CategoryResult
-                      title="Writing"
-                      score={testResults.checklist.writing}
-                      description="Your responses suggest significant challenges with spelling and written expression."
-                    />
-                    
-                    <CategoryResult
-                      title="Language Processing"
-                      score={testResults.checklist.language}
-                      description="Your responses indicate some difficulties with phonological awareness and verbal processing."
-                    />
-                    
-                    <CategoryResult
-                      title="Cognitive Skills"
-                      score={testResults.checklist.cognitive}
-                      description="Your responses suggest moderate challenges with memory, organization, and processing speed."
-                    />
-                  </div>
-                  
-                  <div className="mt-8 p-4 bg-dyslexai-blue-50 rounded-lg">
-                    <h4 className="font-bold text-dyslexai-blue-700 mb-2">Checklist Insights</h4>
-                    <p className="text-gray-700">
-                      Your checklist responses show patterns across multiple domains that are often associated with dyslexia. Writing and reading areas show the strongest indicators, which is a common profile for individuals with dyslexia.
-                    </p>
-                  </div>
-                  
-                  <div className="mt-6 flex justify-center">
-                    <Button variant="outline" onClick={() => setActiveTab("overview")}>
-                      <ArrowLeft className="mr-2 h-5 w-5" />
-                      Back to Overview
-                    </Button>
-                  </div>
-                </div>
-              </Section>
-            </TabsContent>
-            
-            <TabsContent value="cognitive">
-              <Section title="Cognitive Tests Results">
-                {!testResults.cognitive.completed ? (
-                  <div className="bg-white rounded-xl shadow-md p-6 border border-dyslexai-blue-100 text-center">
-                    <h3 className="text-xl font-bold text-dyslexai-blue-700 mb-4">Cognitive Tests Not Completed</h3>
-                    <p className="mb-6">Complete the cognitive tests to see your results here.</p>
-                    <Link to="/cognitive-tests">
-                      <Button className="dyslexai-btn-primary">
-                        Go to Cognitive Tests
-                      </Button>
-                    </Link>
-                  </div>
-                ) : (
-                  <div className="bg-white rounded-xl shadow-md p-6 border border-dyslexai-blue-100">
-                    <h3 className="text-xl font-bold text-dyslexai-blue-700 mb-4">Cognitive Assessment</h3>
-                    
-                    <div className="space-y-6">
-                      <CategoryResult
-                        title="Phonological Awareness"
-                        score={testResults.cognitive.phonological}
-                        description="Your performance indicates some difficulties with identifying and manipulating sounds in words."
-                      />
-                      
-                      <CategoryResult
-                        title="Rapid Automatized Naming"
-                        score={testResults.cognitive.ran}
-                        description="Your performance suggests moderate challenges with rapid naming of familiar items."
-                      />
-                      
-                      <CategoryResult
-                        title="Working Memory"
-                        score={testResults.cognitive.workingMemory}
-                        description="Your performance indicates mild difficulties with holding and manipulating information in short-term memory."
-                      />
-                      
-                      <CategoryResult
-                        title="Processing Speed"
-                        score={testResults.cognitive.processingSpeed}
-                        description="Your performance suggests moderate challenges with processing visual-verbal information quickly."
-                      />
-                    </div>
-                    
-                    <div className="mt-8 p-4 bg-dyslexai-blue-50 rounded-lg">
-                      <h4 className="font-bold text-dyslexai-blue-700 mb-2">Cognitive Test Insights</h4>
-                      <p className="text-gray-700">
-                        Your cognitive test results show patterns typically associated with dyslexia, particularly in phonological awareness and rapid naming. These core deficits are consistent with the double-deficit hypothesis of dyslexia.
+                  <div className="flex flex-col md:flex-row justify-between mb-6">
+                    <div>
+                      <h3 className="text-xl font-bold text-dyslexai-blue-700 mb-2">Symptom Checklist Assessment</h3>
+                      <p className="text-gray-600">
+                        Completed on {testResults.checklist.date.toLocaleDateString()}
                       </p>
                     </div>
-                    
-                    <div className="mt-6 flex justify-center">
-                      <Button variant="outline" onClick={() => setActiveTab("overview")}>
-                        <ArrowLeft className="mr-2 h-5 w-5" />
-                        Back to Overview
-                      </Button>
+                    <div className="mt-4 md:mt-0 flex items-center">
+                      <div className="bg-dyslexai-blue-500 text-white rounded-full h-16 w-16 flex items-center justify-center mr-4">
+                        <span className="text-xl font-bold">{testResults.checklist.total}%</span>
+                      </div>
+                      <div>
+                        <span className="text-sm text-gray-500">Overall Score</span>
+                        <div className="font-medium">
+                          {testResults.checklist.total >= 75 ? 
+                            "Low Risk" :
+                            testResults.checklist.total >= 50 ?
+                            "Moderate Risk" :
+                            "High Risk"
+                          }
+                        </div>
+                      </div>
                     </div>
                   </div>
-                )}
+                  
+                  <div className="mb-8">
+                    <h4 className="font-medium mb-4">Category Breakdown</h4>
+                    <div className="space-y-4">
+                      <ChecklistCategory name="Reading Skills" score={testResults.checklist.reading} />
+                      <ChecklistCategory name="Writing Skills" score={testResults.checklist.writing} />
+                      <ChecklistCategory name="Speaking Skills" score={testResults.checklist.speaking} />
+                      <ChecklistCategory name="Organization Skills" score={testResults.checklist.organization} />
+                    </div>
+                  </div>
+                  
+                  <div className="mt-8 p-4 bg-dyslexai-blue-50 rounded-lg">
+                    <h4 className="font-bold text-dyslexai-blue-700 mb-2">Analysis</h4>
+                    <p className="text-gray-700">
+                      Based on your checklist responses, you show moderate indicators of dyslexia particularly in the 
+                      areas of reading and writing. Your organization skills are a relative strength. These results, 
+                      combined with other assessments, can help determine if further professional evaluation is recommended.
+                    </p>
+                  </div>
+                </div>
+              </Section>
+            </TabsContent>
+
+            <TabsContent value="cognitive">
+              <Section title="Cognitive Tests Results">
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+                  <div className="lg:col-span-2">
+                    <Card>
+                      <CardHeader className="pb-2">
+                        <CardTitle className="text-lg text-dyslexai-blue-700">Cognitive Skills Profile</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="h-72">
+                          <ResponsiveContainer width="100%" height="100%">
+                            <BarChart data={barData}>
+                              <XAxis dataKey="name" />
+                              <YAxis domain={[0, 100]} />
+                              <Tooltip formatter={(value) => [`${value}%`, "Score"]} />
+                              <Legend />
+                              <Bar dataKey="score" fill="#1E70F5" />
+                            </BarChart>
+                          </ResponsiveContainer>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </div>
+                  
+                  <Card>
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-lg text-dyslexai-blue-700">Test Completion</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-4">
+                        <TestResult
+                          name="Phonological Awareness"
+                          score={testResults.cognitive.phonological}
+                          interpretation={testResults.cognitive.phonological < 65 ? "Concern" : "Typical"}
+                        />
+                        <Separator />
+                        <TestResult
+                          name="Rapid Naming (RAN)"
+                          score={testResults.cognitive.ran}
+                          interpretation={testResults.cognitive.ran < 65 ? "Concern" : "Typical"}
+                        />
+                        <Separator />
+                        <TestResult
+                          name="Working Memory"
+                          score={testResults.cognitive.workingMemory}
+                          interpretation={testResults.cognitive.workingMemory < 65 ? "Concern" : "Typical"}
+                        />
+                        <Separator />
+                        <TestResult
+                          name="Processing Speed"
+                          score={testResults.cognitive.processingSpeed}
+                          interpretation={testResults.cognitive.processingSpeed < 65 ? "Concern" : "Typical"}
+                        />
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+                
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-lg text-dyslexai-blue-700">Cognitive Assessment Analysis</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="mb-4">
+                      Your cognitive assessment results show strengths in working memory and relative weaknesses in 
+                      phonological awareness and rapid automatized naming (RAN), which are key cognitive skills 
+                      associated with reading development.
+                    </p>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div>
+                        <h4 className="font-medium mb-2 text-dyslexai-blue-700">Phonological Awareness ({testResults.cognitive.phonological}%)</h4>
+                        <p className="text-sm text-gray-600">
+                          Your score indicates some difficulty with identifying and manipulating sounds in words, 
+                          which is a common challenge for individuals with dyslexia. Specific exercises targeting 
+                          phonemic awareness may be beneficial.
+                        </p>
+                      </div>
+                      
+                      <div>
+                        <h4 className="font-medium mb-2 text-dyslexai-blue-700">Rapid Naming ({testResults.cognitive.ran}%)</h4>
+                        <p className="text-sm text-gray-600">
+                          Your score suggests challenges with quickly naming familiar visual items, which correlates 
+                          with reading fluency. This is consistent with the "double-deficit hypothesis" often seen 
+                          in dyslexia.
+                        </p>
+                      </div>
+                      
+                      <div>
+                        <h4 className="font-medium mb-2 text-dyslexai-blue-700">Working Memory ({testResults.cognitive.workingMemory}%)</h4>
+                        <p className="text-sm text-gray-600">
+                          Your working memory score is relatively strong, indicating good ability to hold and manipulate 
+                          information. This is a cognitive strength that can be leveraged in learning strategies.
+                        </p>
+                      </div>
+                      
+                      <div>
+                        <h4 className="font-medium mb-2 text-dyslexai-blue-700">Processing Speed ({testResults.cognitive.processingSpeed}%)</h4>
+                        <p className="text-sm text-gray-600">
+                          Your processing speed shows moderate efficiency. While not in the concerning range, some 
+                          accommodations like extended time might be beneficial for complex reading tasks.
+                        </p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
               </Section>
             </TabsContent>
           </Tabs>
         </div>
       </div>
     </PageLayout>
-  );
-};
-
-type TestResultCardProps = {
-  title: string;
-  score: number | null;
-  completed: boolean;
-  date: string | null;
-  onClick: () => void;
-};
-
-const TestResultCard = ({ title, score, completed, date, onClick }: TestResultCardProps) => {
-  return (
-    <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={onClick}>
-      <CardContent className="p-4">
-        <h4 className="font-bold mb-2">{title}</h4>
-        
-        {completed ? (
-          <>
-            <div className="flex items-center mb-1">
-              <div className="w-full bg-gray-200 rounded-full h-2 mr-2">
-                <div
-                  className="h-2 rounded-full bg-dyslexai-blue-500"
-                  style={{ width: `${score}%` }}
-                ></div>
-              </div>
-              <span className="font-medium text-sm">{score}%</span>
-            </div>
-            <p className="text-xs text-gray-500 mt-2">Completed on {date}</p>
-          </>
-        ) : (
-          <p className="text-sm text-amber-600 font-medium">Not completed</p>
-        )}
-      </CardContent>
-    </Card>
-  );
-};
-
-type NextStepCardProps = {
-  title: string;
-  description: string;
-  actionText: string;
-  actionLink: string;
-  highlight?: boolean;
-};
-
-const NextStepCard = ({ title, description, actionText, actionLink, highlight = false }: NextStepCardProps) => {
-  return (
-    <div className={`p-4 rounded-lg border ${highlight ? 'border-dyslexai-blue-300 bg-dyslexai-blue-50' : 'border-gray-200'}`}>
-      <h4 className="font-bold mb-1">{title}</h4>
-      <p className="text-sm text-gray-600 mb-3">{description}</p>
-      <Link to={actionLink}>
-        <Button variant="outline" size="sm">
-          {actionText}
-        </Button>
-      </Link>
-    </div>
   );
 };
 
@@ -417,26 +524,53 @@ const ResultItem = ({ title, score, maxScore, description }: ResultItemProps) =>
   );
 };
 
-type CategoryResultProps = {
-  title: string;
+type ChecklistCategoryProps = {
+  name: string;
   score: number;
-  description: string;
 };
 
-const CategoryResult = ({ title, score, description }: CategoryResultProps) => {
+const ChecklistCategory = ({ name, score }: ChecklistCategoryProps) => {
   return (
     <div>
       <div className="flex justify-between items-center mb-2">
-        <h4 className="font-bold">{title}</h4>
-        <span className="font-medium">{score}%</span>
+        <span className="font-medium">{name}</span>
+        <span>{score}%</span>
       </div>
-      <div className="w-full bg-gray-200 rounded-full h-2 mb-2">
-        <div
-          className="h-2 rounded-full bg-dyslexai-blue-500"
+      <div className="w-full bg-gray-200 rounded-full h-2.5">
+        <div 
+          className="bg-dyslexai-blue-500 h-2.5 rounded-full" 
           style={{ width: `${score}%` }}
         ></div>
       </div>
-      <p className="text-gray-600 text-sm">{description}</p>
+    </div>
+  );
+};
+
+type TestResultProps = {
+  name: string;
+  score: number;
+  interpretation: "Typical" | "Concern";
+};
+
+const TestResult = ({ name, score, interpretation }: TestResultProps) => {
+  return (
+    <div>
+      <div className="flex justify-between items-center mb-1">
+        <span className="font-medium">{name}</span>
+        <span className={`px-2 py-0.5 rounded text-xs font-medium 
+          ${interpretation === "Typical" ? "bg-green-100 text-green-800" : "bg-amber-100 text-amber-800"}`}>
+          {interpretation}
+        </span>
+      </div>
+      <div className="flex items-center">
+        <span className="mr-2 font-medium">{score}%</span>
+        <div className="w-full bg-gray-200 rounded-full h-2">
+          <div 
+            className={`h-2 rounded-full ${interpretation === "Typical" ? "bg-green-500" : "bg-amber-500"}`}
+            style={{ width: `${score}%` }}
+          ></div>
+        </div>
+      </div>
     </div>
   );
 };

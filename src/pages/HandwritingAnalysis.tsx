@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import PageLayout from "@/components/layout/PageLayout";
 import PageHeader from "@/components/ui/page-header";
@@ -8,7 +7,8 @@ import { PenTool, Upload, ArrowRight, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { useToast } from "@/components/ui/use-toast";
-import { analyzeHandwriting, HandwritingAnalysisResult } from "@/utils/handwritingAnalysis";
+import { analyzeHandwritingWithML } from "@/utils/ml-services";
+import { HandwritingAnalysisResult } from "@/utils/handwritingAnalysis";
 
 const HandwritingAnalysis = () => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -60,7 +60,7 @@ const HandwritingAnalysis = () => {
     
     try {
       // Process the image using our ML handwriting analysis utility
-      const result = await analyzeHandwriting(previewUrl);
+      const result = await analyzeHandwritingWithML(previewUrl);
       setAnalysisResult(result);
       
       toast({

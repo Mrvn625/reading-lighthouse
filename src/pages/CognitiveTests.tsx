@@ -1,16 +1,67 @@
 
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import PageLayout from "@/components/layout/PageLayout";
 import PageHeader from "@/components/ui/page-header";
 import Section from "@/components/ui/section";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { BrainCircuit, ArrowRight, PlayCircle, Clock, Lightbulb } from "lucide-react";
+import { BrainCircuit, ArrowRight, PlayCircle, Clock, Lightbulb, CheckCircle2 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useToast } from "@/components/ui/use-toast";
+import PhonologicalTest from "@/components/tests/PhonologicalTest";
 
 const CognitiveTests = () => {
   const [activeTab, setActiveTab] = useState("overview");
+  const [activeTest, setActiveTest] = useState<string | null>(null);
+  const [testResults, setTestResults] = useState<{[key: string]: number}>({});
+  const { toast } = useToast();
+  const navigate = useNavigate();
+  
+  const handleStartTest = (testId: string) => {
+    setActiveTab("tests");
+    setActiveTest(testId);
+    
+    toast({
+      title: "Starting Test",
+      description: `Please follow the instructions to complete the ${testId} test`,
+    });
+  };
+  
+  const handleTestComplete = (testId: string, score: number) => {
+    setTestResults(prev => ({
+      ...prev,
+      [testId]: score
+    }));
+    
+    setActiveTest(null);
+    
+    toast({
+      title: "Test Completed",
+      description: `Your score: ${score}%. Results have been saved.`,
+    });
+    
+    // If all tests are complete, navigate to results
+    const requiredTests = ["phonological", "ran", "workingMemory", "processingSpeed"];
+    const completedTests = Object.keys(testResults);
+    const allTestsComplete = requiredTests.every(test => 
+      completedTests.includes(test) || test === testId
+    );
+    
+    if (allTestsComplete) {
+      setTimeout(() => {
+        toast({
+          title: "All Tests Completed",
+          description: "Redirecting to your results dashboard",
+        });
+        navigate("/results");
+      }, 1500);
+    }
+  };
+  
+  const isTestCompleted = (testId: string) => {
+    return testId in testResults;
+  };
 
   return (
     <PageLayout>
@@ -76,48 +127,106 @@ const CognitiveTests = () => {
             
             <TabsContent value="tests">
               <Section title="Available Cognitive Tests">
-                <p className="mb-6">
-                  Each test evaluates different cognitive skills related to dyslexia. We recommend completing all tests for the most comprehensive assessment.
-                </p>
-                
-                <div className="space-y-6">
-                  <TestCard
-                    title="Phonological Awareness Test"
-                    description="Evaluate your ability to identify and manipulate sounds in words"
-                    duration="5-7 minutes"
-                    skills={["Sound identification", "Rhyming ability", "Phoneme manipulation"]}
+                {activeTest === "phonological" ? (
+                  <PhonologicalTest
+                    onComplete={(score) => handleTestComplete("phonological", score)}
                   />
-                  
-                  <TestCard
-                    title="Rapid Automatized Naming (RAN)"
-                    description="Measure how quickly you can name familiar visual items"
-                    duration="3-5 minutes"
-                    skills={["Processing speed", "Retrieval fluency", "Automaticity"]}
-                  />
-                  
-                  <TestCard
-                    title="Working Memory Assessment"
-                    description="Test your ability to hold and manipulate information in short-term memory"
-                    duration="5-7 minutes"
-                    skills={["Verbal memory", "Sequencing", "Information processing"]}
-                  />
-                  
-                  <TestCard
-                    title="Processing Speed Evaluation"
-                    description="Assess how quickly you can process and respond to visual information"
-                    duration="4-6 minutes"
-                    skills={["Visual processing", "Decision speed", "Cognitive efficiency"]}
-                  />
-                </div>
-                
-                <div className="mt-10 flex justify-center">
-                  <Link to="/results">
-                    <Button className="dyslexai-btn-primary">
-                      Go to Results Dashboard
-                      <ArrowRight className="ml-2 h-5 w-5" />
+                ) : activeTest === "ran" ? (
+                  <div className="text-center p-12 bg-white rounded-lg shadow-md">
+                    <h3 className="text-xl font-bold mb-4">Rapid Automatized Naming Test</h3>
+                    <p className="mb-4">
+                      This test is in demonstration mode. In a complete version, you would be shown a grid of 
+                      familiar items (letters, numbers) and asked to name them as quickly as possible.
+                    </p>
+                    <Button 
+                      className="dyslexai-btn-primary"
+                      onClick={() => handleTestComplete("ran", Math.floor(Math.random() * 30) + 50)}
+                    >
+                      Simulate Test Completion
                     </Button>
-                  </Link>
-                </div>
+                  </div>
+                ) : activeTest === "workingMemory" ? (
+                  <div className="text-center p-12 bg-white rounded-lg shadow-md">
+                    <h3 className="text-xl font-bold mb-4">Working Memory Test</h3>
+                    <p className="mb-4">
+                      This test is in demonstration mode. In a complete version, you would be shown sequences of 
+                      numbers, letters, or patterns and asked to recall them in the correct order.
+                    </p>
+                    <Button 
+                      className="dyslexai-btn-primary"
+                      onClick={() => handleTestComplete("workingMemory", Math.floor(Math.random() * 30) + 50)}
+                    >
+                      Simulate Test Completion
+                    </Button>
+                  </div>
+                ) : activeTest === "processingSpeed" ? (
+                  <div className="text-center p-12 bg-white rounded-lg shadow-md">
+                    <h3 className="text-xl font-bold mb-4">Processing Speed Test</h3>
+                    <p className="mb-4">
+                      This test is in demonstration mode. In a complete version, you would be asked to rapidly identify 
+                      specific visual stimuli among distractors or make quick decisions about visual information.
+                    </p>
+                    <Button 
+                      className="dyslexai-btn-primary"
+                      onClick={() => handleTestComplete("processingSpeed", Math.floor(Math.random() * 30) + 50)}
+                    >
+                      Simulate Test Completion
+                    </Button>
+                  </div>
+                ) : (
+                  <>
+                    <p className="mb-6">
+                      Each test evaluates different cognitive skills related to dyslexia. We recommend completing all tests for the most comprehensive assessment.
+                    </p>
+                    
+                    <div className="space-y-6">
+                      <TestCard
+                        title="Phonological Awareness Test"
+                        description="Evaluate your ability to identify and manipulate sounds in words"
+                        duration="5-7 minutes"
+                        skills={["Sound identification", "Rhyming ability", "Phoneme manipulation"]}
+                        completed={isTestCompleted("phonological")}
+                        onStart={() => handleStartTest("phonological")}
+                      />
+                      
+                      <TestCard
+                        title="Rapid Automatized Naming (RAN)"
+                        description="Measure how quickly you can name familiar visual items"
+                        duration="3-5 minutes"
+                        skills={["Processing speed", "Retrieval fluency", "Automaticity"]}
+                        completed={isTestCompleted("ran")}
+                        onStart={() => handleStartTest("ran")}
+                      />
+                      
+                      <TestCard
+                        title="Working Memory Assessment"
+                        description="Test your ability to hold and manipulate information in short-term memory"
+                        duration="5-7 minutes"
+                        skills={["Verbal memory", "Sequencing", "Information processing"]}
+                        completed={isTestCompleted("workingMemory")}
+                        onStart={() => handleStartTest("workingMemory")}
+                      />
+                      
+                      <TestCard
+                        title="Processing Speed Evaluation"
+                        description="Assess how quickly you can process and respond to visual information"
+                        duration="4-6 minutes"
+                        skills={["Visual processing", "Decision speed", "Cognitive efficiency"]}
+                        completed={isTestCompleted("processingSpeed")}
+                        onStart={() => handleStartTest("processingSpeed")}
+                      />
+                    </div>
+                    
+                    <div className="mt-10 flex justify-center">
+                      <Link to="/results">
+                        <Button className="dyslexai-btn-primary">
+                          Go to Results Dashboard
+                          <ArrowRight className="ml-2 h-5 w-5" />
+                        </Button>
+                      </Link>
+                    </div>
+                  </>
+                )}
               </Section>
             </TabsContent>
             
@@ -181,13 +290,20 @@ type TestCardProps = {
   description: string;
   duration: string;
   skills: string[];
+  completed?: boolean;
+  onStart: () => void;
 };
 
-const TestCard = ({ title, description, duration, skills }: TestCardProps) => {
+const TestCard = ({ title, description, duration, skills, completed = false, onStart }: TestCardProps) => {
   return (
     <Card className="overflow-hidden transition-shadow duration-300 hover:shadow-md">
       <CardHeader className="pb-2">
-        <CardTitle className="text-xl text-dyslexai-blue-700">{title}</CardTitle>
+        <CardTitle className="text-xl text-dyslexai-blue-700 flex items-center">
+          {title}
+          {completed && (
+            <CheckCircle2 className="ml-2 h-5 w-5 text-green-500" />
+          )}
+        </CardTitle>
         <CardDescription className="text-base">{description}</CardDescription>
       </CardHeader>
       <CardContent>
@@ -208,13 +324,24 @@ const TestCard = ({ title, description, duration, skills }: TestCardProps) => {
         </div>
       </CardContent>
       <CardFooter>
-        {/* This is a demo application, so we'll link to results instead of actual tests */}
-        <Link to="/results" className="w-full">
-          <Button className="w-full flex items-center justify-center">
-            <PlayCircle className="mr-2 h-5 w-5" />
-            Start Test
-          </Button>
-        </Link>
+        <Button
+          className={`w-full flex items-center justify-center ${
+            completed ? "bg-green-500 hover:bg-green-600" : ""
+          }`}
+          onClick={onStart}
+        >
+          {completed ? (
+            <>
+              <CheckCircle2 className="mr-2 h-5 w-5" />
+              Test Completed - Retake
+            </>
+          ) : (
+            <>
+              <PlayCircle className="mr-2 h-5 w-5" />
+              Start Test
+            </>
+          )}
+        </Button>
       </CardFooter>
     </Card>
   );
