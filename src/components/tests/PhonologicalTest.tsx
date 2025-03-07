@@ -1,9 +1,8 @@
-
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/components/ui/use-toast";
-import { PlayCircle, VolumeUp, Check, X, ArrowRight } from "lucide-react";
+import { PlayCircle, Volume, Check, X, ArrowRight } from "lucide-react";
 
 type Question = {
   id: number;
@@ -156,7 +155,7 @@ const PhonologicalTest = ({ onComplete }: PhonologicalTestProps) => {
               <div className="flex items-center justify-center bg-white p-4 rounded-lg">
                 <p className="text-2xl font-bold mr-4">{currentQuestion.word}</p>
                 <Button variant="ghost" onClick={playWord} title="Hear the word">
-                  <VolumeUp className="h-6 w-6 text-dyslexai-blue-500" />
+                  <Volume className="h-6 w-6 text-dyslexai-blue-500" />
                 </Button>
               </div>
             </div>
