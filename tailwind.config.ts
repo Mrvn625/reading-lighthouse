@@ -1,3 +1,4 @@
+
 import type { Config } from "tailwindcss";
 
 export default {
@@ -61,7 +62,39 @@ export default {
 					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
+				},
+				// Custom colors for DyslexAI
+				"dyslexai": {
+					"blue": {
+						"50": "#EBF5FF",
+						"100": "#D3E4FD",
+						"200": "#A7C9FB",
+						"300": "#7BAEF9",
+						"400": "#4F94F7",
+						"500": "#1E70F5",
+						"600": "#0C5BD6",
+						"700": "#0946A9",
+						"800": "#06307D",
+						"900": "#041B50"
+					},
+					"green": {
+						"50": "#F2FCE2",
+						"100": "#E4F8C4",
+						"200": "#C9F089",
+						"300": "#AEE94F",
+						"400": "#93E114",
+						"500": "#72B110",
+						"600": "#5A8D0D",
+						"700": "#436A0A",
+						"800": "#2B4607",
+						"900": "#142303"
+					}
 				}
+			},
+			fontFamily: {
+				sans: ['OpenDyslexic', 'Arial', 'sans-serif'],
+				dyslexic: ['OpenDyslexic', 'Arial', 'sans-serif'],
+				reading: ['Verdana', 'Arial', 'sans-serif']
 			},
 			borderRadius: {
 				lg: 'var(--radius)',

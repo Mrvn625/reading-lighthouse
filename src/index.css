@@ -1,10 +1,13 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
+@import url('https://fonts.cdnfonts.com/css/opendyslexic');
+
 @layer base {
   :root {
-    --background: 0 0% 100%;
+    --background: 195 30% 97%;
     --foreground: 222.2 84% 4.9%;
 
     --card: 0 0% 100%;
@@ -13,16 +16,16 @@
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 84% 4.9%;
 
-    --primary: 222.2 47.4% 11.2%;
+    --primary: 195 85% 41%;
     --primary-foreground: 210 40% 98%;
 
-    --secondary: 210 40% 96.1%;
+    --secondary: 150 60% 40%;
     --secondary-foreground: 222.2 47.4% 11.2%;
 
     --muted: 210 40% 96.1%;
     --muted-foreground: 215.4 16.3% 46.9%;
 
-    --accent: 210 40% 96.1%;
+    --accent: 195 75% 90%;
     --accent-foreground: 222.2 47.4% 11.2%;
 
     --destructive: 0 84.2% 60.2%;
@@ -30,24 +33,17 @@
 
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
+    --ring: 195 85% 41%;
 
-    --radius: 0.5rem;
+    --radius: 0.75rem;
 
     --sidebar-background: 0 0% 98%;
-
     --sidebar-foreground: 240 5.3% 26.1%;
-
     --sidebar-primary: 240 5.9% 10%;
-
     --sidebar-primary-foreground: 0 0% 98%;
-
     --sidebar-accent: 240 4.8% 95.9%;
-
     --sidebar-accent-foreground: 240 5.9% 10%;
-
     --sidebar-border: 220 13% 91%;
-
     --sidebar-ring: 217.2 91.2% 59.8%;
   }
 
@@ -97,5 +93,43 @@
 
   body {
     @apply bg-background text-foreground;
+    @apply font-dyslexic leading-relaxed tracking-wide;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-dyslexic font-bold;
+  }
+
+  p {
+    @apply text-base sm:text-lg mb-4 max-w-prose;
+  }
+}
+
+@layer components {
+  .dyslexai-container {
+    @apply container mx-auto px-4 py-8;
+  }
+  
+  .dyslexai-section {
+    @apply my-8;
+  }
+  
+  .dyslexai-card {
+    @apply bg-white rounded-xl shadow-md p-6 border border-dyslexai-blue-100;
+  }
+  
+  .dyslexai-btn-primary {
+    @apply bg-dyslexai-blue-500 hover:bg-dyslexai-blue-600 text-white font-medium py-3 px-6 rounded-lg 
+    transition-colors duration-200 shadow-sm;
+  }
+  
+  .dyslexai-btn-secondary {
+    @apply bg-dyslexai-green-500 hover:bg-dyslexai-green-600 text-white font-medium py-3 px-6 rounded-lg 
+    transition-colors duration-200 shadow-sm;
+  }
+
+  .dyslexai-btn-outline {
+    @apply border-2 border-dyslexai-blue-500 text-dyslexai-blue-600 hover:bg-dyslexai-blue-50 font-medium 
+    py-3 px-6 rounded-lg transition-colors duration-200;
   }
 }
