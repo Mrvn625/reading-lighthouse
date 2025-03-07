@@ -59,6 +59,11 @@ const Index = () => {
                 Cognitive Tests
               </Button>
             </Link>
+            <Link to="/results">
+              <Button variant="outline" className="border-dyslexai-blue-300 text-dyslexai-blue-700">
+                View Results
+              </Button>
+            </Link>
           </div>
         </div>
       </Section>

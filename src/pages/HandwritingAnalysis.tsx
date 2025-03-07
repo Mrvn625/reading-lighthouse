@@ -3,16 +3,18 @@ import { useState } from "react";
 import PageLayout from "@/components/layout/PageLayout";
 import PageHeader from "@/components/ui/page-header";
 import Section from "@/components/ui/section";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { PenTool, Upload, ArrowRight, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { useToast } from "@/components/ui/use-toast";
+import { analyzeHandwriting, HandwritingAnalysisResult } from "@/utils/handwritingAnalysis";
 
 const HandwritingAnalysis = () => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-  const [isAnalyzed, setIsAnalyzed] = useState(false);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [analysisResult, setAnalysisResult] = useState<HandwritingAnalysisResult | null>(null);
   const { toast } = useToast();
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -30,7 +32,7 @@ const HandwritingAnalysis = () => {
       }
       
       setSelectedFile(file);
-      setIsAnalyzed(false);
+      setAnalysisResult(null);
       
       // Create preview URL
       const reader = new FileReader();
@@ -44,24 +46,37 @@ const HandwritingAnalysis = () => {
   const handleRemoveFile = () => {
     setSelectedFile(null);
     setPreviewUrl(null);
-    setIsAnalyzed(false);
+    setAnalysisResult(null);
   };
 
-  const handleAnalyze = () => {
-    // Simulate analysis process
+  const handleAnalyze = async () => {
+    if (!previewUrl) return;
+    
+    setIsAnalyzing(true);
     toast({
       title: "Analyzing handwriting...",
-      description: "This may take a moment",
+      description: "Our AI model is analyzing your handwriting sample",
     });
     
-    // Simulate a delay for analysis
-    setTimeout(() => {
-      setIsAnalyzed(true);
+    try {
+      // Process the image using our ML handwriting analysis utility
+      const result = await analyzeHandwriting(previewUrl);
+      setAnalysisResult(result);
+      
       toast({
         title: "Analysis complete",
         description: "Your handwriting analysis is ready to view",
       });
-    }, 2000);
+    } catch (error) {
+      console.error("Error analyzing handwriting:", error);
+      toast({
+        title: "Analysis failed",
+        description: "There was a problem analyzing your handwriting sample",
+        variant: "destructive",
+      });
+    } finally {
+      setIsAnalyzing(false);
+    }
   };
 
   return (
@@ -96,7 +111,7 @@ const HandwritingAnalysis = () => {
               <InstructionCard
                 number="3"
                 title="Upload & Analyze"
-                description="Upload the image and we'll analyze patterns related to dyslexia"
+                description="Upload the image and our AI will analyze patterns related to dyslexia"
               />
             </div>
           </Section>
@@ -152,9 +167,9 @@ const HandwritingAnalysis = () => {
                     <Button
                       className="dyslexai-btn-primary w-full"
                       onClick={handleAnalyze}
-                      disabled={isAnalyzed}
+                      disabled={isAnalyzing}
                     >
-                      {isAnalyzed ? "Analyzed" : "Analyze Handwriting"}
+                      {isAnalyzing ? "Analyzing..." : "Analyze Handwriting"}
                     </Button>
                   </div>
                 )}
@@ -162,7 +177,7 @@ const HandwritingAnalysis = () => {
             </Card>
           </Section>
 
-          {isAnalyzed && (
+          {analysisResult && (
             <Section title="Analysis Results">
               <div className="bg-white rounded-xl shadow-md p-6 border border-dyslexai-blue-100">
                 <h3 className="text-xl font-bold text-dyslexai-blue-700 mb-4">Handwriting Assessment</h3>
@@ -170,37 +185,42 @@ const HandwritingAnalysis = () => {
                 <div className="space-y-6">
                   <ResultItem
                     title="Letter Formation"
-                    score={3}
+                    score={analysisResult.letterFormation.score}
                     maxScore={5}
-                    description="Some inconsistencies in how letters are formed, particularly with 'b', 'd', and 'p'."
+                    description={analysisResult.letterFormation.description}
                   />
                   
                   <ResultItem
                     title="Letter Spacing"
-                    score={2}
+                    score={analysisResult.letterSpacing.score}
                     maxScore={5}
-                    description="Irregular spacing between letters and words is evident, which is common in dyslexia."
+                    description={analysisResult.letterSpacing.description}
                   />
                   
                   <ResultItem
                     title="Line Alignment"
-                    score={4}
+                    score={analysisResult.lineAlignment.score}
                     maxScore={5}
-                    description="Writing mostly follows the line guides with minor deviations."
+                    description={analysisResult.lineAlignment.description}
                   />
                   
                   <ResultItem
                     title="Letter Reversals"
-                    score={3}
+                    score={analysisResult.letterReversals.score}
                     maxScore={5}
-                    description="Some instances of letter reversals were detected, particularly with 'b' and 'd'."
+                    description={analysisResult.letterReversals.description}
                   />
                 </div>
                 
                 <div className="mt-8 p-4 bg-dyslexai-blue-50 rounded-lg">
                   <h4 className="font-bold text-dyslexai-blue-700 mb-2">What These Results Mean</h4>
                   <p className="text-gray-700">
-                    Your handwriting shows some patterns that are sometimes associated with dyslexia, particularly in letter formation and spacing. These results suggest it may be worth exploring further assessment options. Continue with our other tests to gather more information.
+                    {analysisResult.overallScore >= 75 ? 
+                      "Your handwriting shows few patterns associated with dyslexia. If you're still concerned, continue with our other assessments to gather more information." :
+                      analysisResult.overallScore >= 50 ?
+                      "Your handwriting shows some patterns that are sometimes associated with dyslexia, particularly in letter formation and spacing. These results suggest it may be worth exploring further assessment options." :
+                      "Your handwriting shows several patterns strongly associated with dyslexia, including letter reversals and inconsistent spacing. We recommend completing our other assessments and considering professional evaluation."
+                    }
                   </p>
                 </div>
                 

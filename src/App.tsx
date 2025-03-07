@@ -10,6 +10,7 @@ import HowTestsWork from "./pages/HowTestsWork";
 import HandwritingAnalysis from "./pages/HandwritingAnalysis";
 import ChecklistPage from "./pages/ChecklistPage";
 import CognitiveTests from "./pages/CognitiveTests";
+import ResultsPage from "./pages/ResultsPage";
 import NotFound from "./pages/NotFound";
 import Index from "./pages/Index";
 
@@ -29,6 +30,7 @@ const App = () => (
           <Route path="/handwriting-analysis" element={<HandwritingAnalysis />} />
           <Route path="/checklist" element={<ChecklistPage />} />
           <Route path="/cognitive-tests" element={<CognitiveTests />} />
+          <Route path="/results" element={<ResultsPage />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
