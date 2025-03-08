@@ -9,7 +9,7 @@ const Index = () => {
     <PageLayout>
       <Section>
         <div className="flex flex-col items-center text-center max-w-3xl mx-auto">
-          <h2 className="text-3xl font-bold mb-6 text-dyslexai-blue-700">Welcome to DyslexAI</h2>
+          <h2 className="text-3xl font-bold mb-6 text-dyslexai-blue-700">Welcome to DyslexAI!</h2>
           <p className="mb-8 text-lg">
             DyslexAI is a comprehensive platform designed to help assess and understand dyslexia 
             through interactive tests and educational content.
