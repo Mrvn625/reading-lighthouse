@@ -20,13 +20,13 @@ const Navbar = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
           <div className="flex-shrink-0 flex items-center">
-            <Link to="/" className="flex items-center" onClick={closeMenu}>
+            <Link to="/" className="flex items-center gap-2" onClick={closeMenu}>
               <BrainCircuit className="h-8 w-8 text-dyslexai-blue-500" />
-              <span className="ml-2 text-2xl font-bold text-dyslexai-blue-600">DyslexAI</span>
+              <span className="text-2xl font-bold text-dyslexai-blue-600">DyslexAI</span>
             </Link>
           </div>
           
-          <div className="hidden md:flex md:items-center md:space-x-4">
+          <div className="hidden md:flex md:items-center md:space-x-1">
             <NavLinks mobile={false} closeMenu={closeMenu} />
           </div>
           
@@ -83,7 +83,7 @@ const NavLinks = ({ mobile, closeMenu }: NavLinksProps) => {
           className={`${
             mobile
               ? 'block py-3 px-4 text-base font-medium hover:bg-dyslexai-blue-50 hover:text-dyslexai-blue-600'
-              : 'inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 hover:text-dyslexai-blue-600'
+              : 'inline-flex items-center px-3 py-2 text-sm font-medium text-gray-700 hover:text-dyslexai-blue-600'
           } transition-colors duration-200`}
         >
           <span className={`${mobile ? 'mr-3 inline-flex' : 'mr-2'}`}>{item.icon}</span>

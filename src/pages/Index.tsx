@@ -7,15 +7,6 @@ import { Link } from "react-router-dom";
 const Index = () => {
   return (
     <PageLayout>
-      <div className="bg-gradient-to-r from-dyslexai-blue-50 to-dyslexai-green-50 py-12 px-4 rounded-xl mb-8">
-        <div className="max-w-4xl mx-auto text-center">
-          <h1 className="text-4xl md:text-5xl font-bold text-dyslexai-blue-800 mb-6">DyslexAI</h1>
-          <p className="text-xl text-gray-700 max-w-3xl mx-auto">
-            Understanding, assessing, and supporting individuals with dyslexia through interactive technology
-          </p>
-        </div>
-      </div>
-      
       <Section>
         <div className="flex flex-col items-center text-center max-w-3xl mx-auto">
           <h2 className="text-3xl font-bold mb-6 text-dyslexai-blue-700">Welcome to DyslexAI</h2>
