@@ -1,17 +1,20 @@
 
 import { Button } from "@/components/ui/button";
 import PageLayout from "@/components/layout/PageLayout";
-import PageHeader from "@/components/ui/page-header";
 import Section from "@/components/ui/section";
 import { Link } from "react-router-dom";
 
 const Index = () => {
   return (
     <PageLayout>
-      <PageHeader
-        title="DyslexAI"
-        description="An interactive platform for dyslexia assessment and education"
-      />
+      <div className="bg-gradient-to-r from-dyslexai-blue-50 to-dyslexai-green-50 py-12 px-4 rounded-xl mb-8">
+        <div className="max-w-4xl mx-auto text-center">
+          <h1 className="text-4xl md:text-5xl font-bold text-dyslexai-blue-800 mb-6">DyslexAI</h1>
+          <p className="text-xl text-gray-700 max-w-3xl mx-auto">
+            Understanding, assessing, and supporting individuals with dyslexia through interactive technology
+          </p>
+        </div>
+      </div>
       
       <Section>
         <div className="flex flex-col items-center text-center max-w-3xl mx-auto">
