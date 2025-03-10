@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import PageLayout from "@/components/layout/PageLayout";
 import PageHeader from "@/components/ui/page-header";
@@ -182,8 +183,9 @@ const HandwritingAnalysis = () => {
                       <p className="text-sm text-gray-500 mb-4">JPG, PNG or GIF up to 10MB</p>
                       <label htmlFor="file-upload">
                         <Button 
-                          className="dyslexai-btn-primary"
+                          className="dyslexai-btn-primary cursor-pointer"
                           disabled={!modelLoaded}
+                          type="button"
                         >
                           Choose File
                         </Button>
