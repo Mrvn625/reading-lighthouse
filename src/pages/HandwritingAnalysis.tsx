@@ -1,21 +1,53 @@
-import { useState } from "react";
+
+import { useState, useEffect } from "react";
 import PageLayout from "@/components/layout/PageLayout";
 import PageHeader from "@/components/ui/page-header";
 import Section from "@/components/ui/section";
 import { Card, CardContent } from "@/components/ui/card";
-import { PenTool, Upload, ArrowRight, Trash2 } from "lucide-react";
+import { PenTool, Upload, ArrowRight, Trash2, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { useToast } from "@/components/ui/use-toast";
-import { analyzeHandwritingWithML } from "@/utils/ml-services";
+import { analyzeHandwritingWithML, loadHandwritingModel } from "@/utils/ml-services";
 import { HandwritingAnalysisResult } from "@/utils/handwritingAnalysis";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 const HandwritingAnalysis = () => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [analysisResult, setAnalysisResult] = useState<HandwritingAnalysisResult | null>(null);
+  const [modelLoaded, setModelLoaded] = useState(false);
+  const [modelLoading, setModelLoading] = useState(false);
   const { toast } = useToast();
+
+  // Preload the model when the component mounts
+  useEffect(() => {
+    const loadModel = async () => {
+      try {
+        setModelLoading(true);
+        const success = await loadHandwritingModel();
+        setModelLoaded(success);
+        if (success) {
+          toast({
+            title: "Model loaded",
+            description: "Handwriting analysis model is ready to use",
+          });
+        }
+      } catch (error) {
+        console.error("Error loading model:", error);
+        toast({
+          title: "Model loading failed",
+          description: "Could not load the handwriting analysis model. Please refresh and try again.",
+          variant: "destructive",
+        });
+      } finally {
+        setModelLoading(false);
+      }
+    };
+
+    loadModel();
+  }, [toast]);
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files && event.target.files[0]) {
@@ -26,6 +58,16 @@ const HandwritingAnalysis = () => {
         toast({
           title: "Invalid file type",
           description: "Please upload an image file (jpg, png, etc.)",
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      // Check file size (max 10MB)
+      if (file.size > 10 * 1024 * 1024) {
+        toast({
+          title: "File too large",
+          description: "Please upload an image smaller than 10MB",
           variant: "destructive",
         });
         return;
@@ -117,6 +159,18 @@ const HandwritingAnalysis = () => {
           </Section>
 
           <Section title="Upload Your Handwriting Sample">
+            {!modelLoaded && (
+              <Alert className="mb-6" variant="warning">
+                <AlertCircle className="h-4 w-4" />
+                <AlertTitle>Model Loading</AlertTitle>
+                <AlertDescription>
+                  {modelLoading 
+                    ? "The handwriting analysis model is currently loading. This may take a few moments..." 
+                    : "The handwriting analysis model failed to load. Please refresh the page to try again."}
+                </AlertDescription>
+              </Alert>
+            )}
+            
             <Card>
               <CardContent className="pt-6">
                 {!selectedFile ? (
@@ -133,7 +187,10 @@ const HandwritingAnalysis = () => {
                       <p className="text-xl font-medium text-gray-700 mb-1">Upload handwriting sample</p>
                       <p className="text-sm text-gray-500 mb-4">JPG, PNG or GIF up to 10MB</p>
                       <label htmlFor="file-upload">
-                        <Button className="dyslexai-btn-primary">
+                        <Button 
+                          className="dyslexai-btn-primary"
+                          disabled={!modelLoaded}
+                        >
                           Choose File
                         </Button>
                       </label>
@@ -167,7 +224,7 @@ const HandwritingAnalysis = () => {
                     <Button
                       className="dyslexai-btn-primary w-full"
                       onClick={handleAnalyze}
-                      disabled={isAnalyzing}
+                      disabled={isAnalyzing || !modelLoaded}
                     >
                       {isAnalyzing ? "Analyzing..." : "Analyze Handwriting"}
                     </Button>
