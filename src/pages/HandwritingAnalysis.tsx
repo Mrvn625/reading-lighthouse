@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import PageLayout from "@/components/layout/PageLayout";
 import PageHeader from "@/components/ui/page-header";
@@ -21,7 +20,6 @@ const HandwritingAnalysis = () => {
   const [modelLoading, setModelLoading] = useState(false);
   const { toast } = useToast();
 
-  // Preload the model when the component mounts
   useEffect(() => {
     const loadModel = async () => {
       try {
@@ -53,7 +51,6 @@ const HandwritingAnalysis = () => {
     if (event.target.files && event.target.files[0]) {
       const file = event.target.files[0];
       
-      // Check if file is an image
       if (!file.type.match('image.*')) {
         toast({
           title: "Invalid file type",
@@ -63,7 +60,6 @@ const HandwritingAnalysis = () => {
         return;
       }
       
-      // Check file size (max 10MB)
       if (file.size > 10 * 1024 * 1024) {
         toast({
           title: "File too large",
@@ -76,7 +72,6 @@ const HandwritingAnalysis = () => {
       setSelectedFile(file);
       setAnalysisResult(null);
       
-      // Create preview URL
       const reader = new FileReader();
       reader.onload = (e) => {
         setPreviewUrl(e.target?.result as string);
@@ -101,7 +96,6 @@ const HandwritingAnalysis = () => {
     });
     
     try {
-      // Process the image using our ML handwriting analysis utility
       const result = await analyzeHandwritingWithML(previewUrl);
       setAnalysisResult(result);
       
@@ -160,10 +154,10 @@ const HandwritingAnalysis = () => {
 
           <Section title="Upload Your Handwriting Sample">
             {!modelLoaded && (
-              <Alert className="mb-6" variant="warning">
-                <AlertCircle className="h-4 w-4" />
-                <AlertTitle>Model Loading</AlertTitle>
-                <AlertDescription>
+              <Alert className="mb-6 border-yellow-500 bg-yellow-50" variant="default">
+                <AlertCircle className="h-4 w-4 text-yellow-600" />
+                <AlertTitle className="text-yellow-800">Model Loading</AlertTitle>
+                <AlertDescription className="text-yellow-700">
                   {modelLoading 
                     ? "The handwriting analysis model is currently loading. This may take a few moments..." 
                     : "The handwriting analysis model failed to load. Please refresh the page to try again."}
