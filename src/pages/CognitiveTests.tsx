@@ -7,10 +7,12 @@ import { BrainCircuit } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/components/ui/use-toast";
 import PhonologicalTest from "@/components/tests/PhonologicalTest";
+import RANTest from "@/components/tests/RANTest";
+import WorkingMemoryTest from "@/components/tests/WorkingMemoryTest";
+import ProcessingSpeedTest from "@/components/tests/ProcessingSpeedTest";
 import TestOverview from "@/components/tests/TestOverview";
 import TestScience from "@/components/tests/TestScience";
 import AvailableTests from "@/components/tests/AvailableTests";
-import TestSimulation from "@/components/tests/TestSimulation";
 
 const CognitiveTests = () => {
   const [activeTab, setActiveTab] = useState("overview");
@@ -44,9 +46,9 @@ const CognitiveTests = () => {
     
     // If all tests are complete, navigate to results
     const requiredTests = ["phonological", "ran", "workingMemory", "processingSpeed"];
-    const completedTests = Object.keys(testResults);
+    const completedTests = Object.keys({...testResults, [testId]: score});
     const allTestsComplete = requiredTests.every(test => 
-      completedTests.includes(test) || test === testId
+      completedTests.includes(test)
     );
     
     if (allTestsComplete) {
@@ -95,21 +97,15 @@ const CognitiveTests = () => {
                   onComplete={(score) => handleTestComplete("phonological", score)}
                 />
               ) : activeTest === "ran" ? (
-                <TestSimulation
-                  title="Rapid Automatized Naming Test"
-                  description="This test is in demonstration mode. In a complete version, you would be shown a grid of familiar items (letters, numbers) and asked to name them as quickly as possible."
+                <RANTest
                   onComplete={(score) => handleTestComplete("ran", score)}
                 />
               ) : activeTest === "workingMemory" ? (
-                <TestSimulation
-                  title="Working Memory Test"
-                  description="This test is in demonstration mode. In a complete version, you would be shown sequences of numbers, letters, or patterns and asked to recall them in the correct order."
+                <WorkingMemoryTest
                   onComplete={(score) => handleTestComplete("workingMemory", score)}
                 />
               ) : activeTest === "processingSpeed" ? (
-                <TestSimulation
-                  title="Processing Speed Test"
-                  description="This test is in demonstration mode. In a complete version, you would be asked to rapidly identify specific visual stimuli among distractors or make quick decisions about visual information."
+                <ProcessingSpeedTest
                   onComplete={(score) => handleTestComplete("processingSpeed", score)}
                 />
               ) : (
