@@ -1,5 +1,4 @@
-
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import PageLayout from "@/components/layout/PageLayout";
 import PageHeader from "@/components/ui/page-header";
 import Section from "@/components/ui/section";
@@ -20,6 +19,7 @@ const HandwritingAnalysis = () => {
   const [modelLoaded, setModelLoaded] = useState(false);
   const [modelLoading, setModelLoading] = useState(false);
   const { toast } = useToast();
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     const loadModel = async () => {
@@ -116,6 +116,10 @@ const HandwritingAnalysis = () => {
     }
   };
 
+  const triggerFileInput = () => {
+    fileInputRef.current?.click();
+  };
+
   return (
     <PageLayout>
       <div className="dyslexai-container">
@@ -174,6 +178,7 @@ const HandwritingAnalysis = () => {
                       type="file"
                       accept="image/*"
                       id="file-upload"
+                      ref={fileInputRef}
                       className="hidden"
                       onChange={handleFileSelect}
                     />
@@ -181,15 +186,14 @@ const HandwritingAnalysis = () => {
                       <Upload className="h-10 w-10 text-gray-400 mb-4" />
                       <p className="text-xl font-medium text-gray-700 mb-1">Upload handwriting sample</p>
                       <p className="text-sm text-gray-500 mb-4">JPG, PNG or GIF up to 10MB</p>
-                      <label htmlFor="file-upload">
-                        <Button 
-                          className="dyslexai-btn-primary cursor-pointer"
-                          disabled={!modelLoaded}
-                          type="button"
-                        >
-                          Choose File
-                        </Button>
-                      </label>
+                      <Button 
+                        onClick={triggerFileInput}
+                        className="dyslexai-btn-primary"
+                        disabled={!modelLoaded}
+                        type="button"
+                      >
+                        Choose File
+                      </Button>
                     </div>
                   </div>
                 ) : (
