@@ -6,6 +6,7 @@ import PageHeader from "@/components/ui/page-header";
 import { BrainCircuit } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/components/ui/use-toast";
+import { Button } from "@/components/ui/button"; // Added Button import
 import PhonologicalTest from "@/components/tests/PhonologicalTest";
 import RANTest from "@/components/tests/RANTest";
 import WorkingMemoryTest from "@/components/tests/WorkingMemoryTest";
