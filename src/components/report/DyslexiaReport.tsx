@@ -1,4 +1,3 @@
-
 import { useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -27,7 +26,6 @@ const DyslexiaReport = ({ userData, testResults, recommendations }: ReportProps)
   const { toast } = useToast();
 
   const getDyslexiaRiskLevel = () => {
-    // Calculate average score across all completed tests
     const scores = Object.values(testResults).filter(score => score !== undefined) as number[];
     if (scores.length === 0) return "Unknown";
     

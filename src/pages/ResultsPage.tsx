@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import PageLayout from "@/components/layout/PageLayout";
 import PageHeader from "@/components/ui/page-header";
@@ -9,9 +8,6 @@ import DyslexiaReport from "@/components/report/DyslexiaReport";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
 import { Link } from "react-router-dom";
-
-// Add dependency for PDF generation
-<lov-add-dependency>html2pdf.js@0.10.1</lov-add-dependency>
 
 const ResultsPage = () => {
   const [testResults, setTestResults] = useState<{[key: string]: number}>({});
