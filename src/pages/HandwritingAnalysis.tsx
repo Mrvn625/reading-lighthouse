@@ -1,9 +1,10 @@
+
 import { useState, useEffect, useRef } from "react";
 import PageLayout from "@/components/layout/PageLayout";
 import PageHeader from "@/components/ui/page-header";
 import Section from "@/components/ui/section";
 import { Card, CardContent } from "@/components/ui/card";
-import { PenTool, Upload, ArrowRight, Trash2, AlertCircle } from "lucide-react";
+import { PenTool, Upload, ArrowRight, Trash2, AlertCircle, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { useToast } from "@/components/ui/use-toast";
@@ -241,34 +242,84 @@ const HandwritingAnalysis = () => {
               <div className="bg-white rounded-xl shadow-md p-6 border border-dyslexai-blue-100">
                 <h3 className="text-xl font-bold text-dyslexai-blue-700 mb-4">Handwriting Assessment</h3>
                 
+                {/* OCR Results Section */}
+                <div className="mb-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
+                  <div className="flex items-center mb-2">
+                    <FileText className="h-5 w-5 text-dyslexai-blue-500 mr-2" />
+                    <h4 className="font-bold text-dyslexai-blue-700">Recognized Text</h4>
+                  </div>
+                  <p className="text-gray-700 italic">"{analysisResult.recognizedText}"</p>
+                </div>
+                
                 <div className="space-y-6">
-                  <ResultItem
-                    title="Letter Formation"
-                    score={analysisResult.letterFormation.score}
-                    maxScore={5}
-                    description={analysisResult.letterFormation.description}
-                  />
+                  {/* Traditional Metrics */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <ResultItem
+                      title="Letter Formation"
+                      score={analysisResult.letterFormation.score}
+                      maxScore={5}
+                      description={analysisResult.letterFormation.description}
+                    />
+                    
+                    <ResultItem
+                      title="Letter Spacing"
+                      score={analysisResult.letterSpacing.score}
+                      maxScore={5}
+                      description={analysisResult.letterSpacing.description}
+                    />
+                    
+                    <ResultItem
+                      title="Line Alignment"
+                      score={analysisResult.lineAlignment.score}
+                      maxScore={5}
+                      description={analysisResult.lineAlignment.description}
+                    />
+                    
+                    <ResultItem
+                      title="Letter Reversals"
+                      score={analysisResult.letterReversals.score}
+                      maxScore={5}
+                      description={analysisResult.letterReversals.description}
+                    />
+                  </div>
                   
-                  <ResultItem
-                    title="Letter Spacing"
-                    score={analysisResult.letterSpacing.score}
-                    maxScore={5}
-                    description={analysisResult.letterSpacing.description}
-                  />
+                  {/* Divider */}
+                  <div className="border-t border-gray-200 my-4"></div>
                   
-                  <ResultItem
-                    title="Line Alignment"
-                    score={analysisResult.lineAlignment.score}
-                    maxScore={5}
-                    description={analysisResult.lineAlignment.description}
-                  />
-                  
-                  <ResultItem
-                    title="Letter Reversals"
-                    score={analysisResult.letterReversals.score}
-                    maxScore={5}
-                    description={analysisResult.letterReversals.description}
-                  />
+                  {/* OCR-based Metrics */}
+                  <h4 className="font-bold text-dyslexai-blue-700 mb-2">Text Analysis</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <ResultItem
+                      title="Phonetic Accuracy"
+                      score={analysisResult.phoneticAccuracy.score}
+                      maxScore={5}
+                      description={analysisResult.phoneticAccuracy.description}
+                    />
+                    
+                    <ResultItem
+                      title="Spelling Accuracy"
+                      score={analysisResult.spellingAccuracy.score}
+                      maxScore={5}
+                      description={analysisResult.spellingAccuracy.description}
+                    />
+                    
+                    <ResultItem
+                      title="Grammatical Structure"
+                      score={analysisResult.grammaticalAccuracy.score}
+                      maxScore={5}
+                      description={analysisResult.grammaticalAccuracy.description}
+                    />
+                    
+                    <div>
+                      <div className="flex justify-between items-center mb-2">
+                        <h4 className="font-bold">Corrections</h4>
+                        <span className="text-sm font-medium px-2 py-1 bg-gray-100 rounded-full">
+                          {analysisResult.corrections.count} detected
+                        </span>
+                      </div>
+                      <p className="text-gray-600 text-sm">{analysisResult.corrections.description}</p>
+                    </div>
+                  </div>
                 </div>
                 
                 <div className="mt-8 p-4 bg-dyslexai-blue-50 rounded-lg">
@@ -310,8 +361,16 @@ const HandwritingAnalysis = () => {
                 description="Inconsistency in how letters are shaped and formed"
               />
               <FeatureCard
-                title="Organization"
-                description="Overall organization, alignment, and structure of writing"
+                title="Phonetic Spelling"
+                description="Spelling words as they sound, rather than according to conventional spelling"
+              />
+              <FeatureCard
+                title="Grammatical Structure"
+                description="Word order, sentence structure, and use of punctuation"
+              />
+              <FeatureCard
+                title="Corrections & Revisions"
+                description="Frequency of cross-outs, overwritten letters, or added insertions"
               />
             </div>
             

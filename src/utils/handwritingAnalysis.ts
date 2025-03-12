@@ -22,6 +22,24 @@ export interface HandwritingAnalysisResult {
     score: number;
     description: string;
   };
+  // New metrics for OCR analysis
+  phoneticAccuracy: {
+    score: number;
+    description: string;
+  };
+  spellingAccuracy: {
+    score: number;
+    description: string;
+  };
+  grammaticalAccuracy: {
+    score: number;
+    description: string;
+  };
+  corrections: {
+    count: number;
+    description: string;
+  };
+  recognizedText: string;
   overallScore: number;
 }
 
@@ -31,4 +49,14 @@ export interface HandwritingFeatures {
   letterSpacing: number;
   lineAlignment: number;
   letterReversals: number;
+  phoneticAccuracy: number;
+  spellingAccuracy: number;
+  grammaticalAccuracy: number;
+  corrections: number;
+}
+
+// OCR result interface
+export interface OCRResult {
+  text: string;
+  confidence: number;
 }
