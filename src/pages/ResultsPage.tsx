@@ -1,20 +1,30 @@
+
 import { useState, useEffect } from "react";
 import PageLayout from "@/components/layout/PageLayout";
 import PageHeader from "@/components/ui/page-header";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { BarChart, LineChart, FileText } from "lucide-react";
+import { BarChart, LineChart, FileText, PieChart } from "lucide-react";
 import DyslexiaReport from "@/components/report/DyslexiaReport";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
 import { Link } from "react-router-dom";
+import { LineChart as RechartsLineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart as RechartsBarChart, Bar, Legend } from 'recharts';
 
 const ResultsPage = () => {
   const [testResults, setTestResults] = useState<{[key: string]: number}>({});
-  const [userData, setUserData] = useState<{name: string, isLoggedIn: boolean}>({
+  const [userData, setUserData] = useState<{
+    name: string, 
+    age?: string, 
+    email?: string,
+    school?: string,
+    grade?: string,
+    isLoggedIn: boolean
+  }>({
     name: "Guest User",
     isLoggedIn: false
   });
+  const [testDates, setTestDates] = useState<{[key: string]: string}>({});
   const { toast } = useToast();
   
   useEffect(() => {
@@ -22,6 +32,12 @@ const ResultsPage = () => {
     const savedResults = localStorage.getItem("testResults");
     if (savedResults) {
       setTestResults(JSON.parse(savedResults));
+    }
+    
+    // Load test dates from localStorage
+    const savedDates = localStorage.getItem("testDates");
+    if (savedDates) {
+      setTestDates(JSON.parse(savedDates));
     }
     
     // Load user data if available
@@ -70,6 +86,90 @@ const ResultsPage = () => {
     return Math.round(scores.reduce((a, b) => a + b, 0) / scores.length);
   };
 
+  const generateChartData = () => {
+    const data = [];
+    
+    if (testResults.phonological !== undefined) {
+      data.push({
+        name: "Phonological",
+        score: testResults.phonological,
+        threshold: 70
+      });
+    }
+    
+    if (testResults.workingMemory !== undefined) {
+      data.push({
+        name: "Working Memory",
+        score: testResults.workingMemory,
+        threshold: 70
+      });
+    }
+    
+    if (testResults.processingSpeed !== undefined) {
+      data.push({
+        name: "Processing",
+        score: testResults.processingSpeed,
+        threshold: 70
+      });
+    }
+    
+    if (testResults.ran !== undefined) {
+      data.push({
+        name: "RAN",
+        score: testResults.ran,
+        threshold: 70
+      });
+    }
+    
+    if (testResults.handwriting !== undefined) {
+      data.push({
+        name: "Handwriting",
+        score: testResults.handwriting,
+        threshold: 70
+      });
+    }
+    
+    if (testResults.audioDiscrimination !== undefined) {
+      data.push({
+        name: "Audio",
+        score: testResults.audioDiscrimination,
+        threshold: 70
+      });
+    }
+    
+    if (testResults.directionSense !== undefined) {
+      data.push({
+        name: "Direction",
+        score: testResults.directionSense,
+        threshold: 70
+      });
+    }
+    
+    return data;
+  };
+
+  // Calculate the most recent test date
+  const getMostRecentTestDate = () => {
+    if (Object.keys(testDates).length === 0) {
+      return new Date().toLocaleDateString('en-US', { 
+        year: 'numeric', 
+        month: 'long', 
+        day: 'numeric' 
+      });
+    }
+    
+    // Convert date strings to Date objects
+    const dates = Object.values(testDates).map(dateStr => new Date(dateStr));
+    // Find the most recent date
+    const mostRecent = new Date(Math.max(...dates.map(date => date.getTime())));
+    
+    return mostRecent.toLocaleDateString('en-US', { 
+      year: 'numeric', 
+      month: 'long', 
+      day: 'numeric' 
+    });
+  };
+
   return (
     <PageLayout>
       <div className="dyslexai-container">
@@ -92,10 +192,14 @@ const ResultsPage = () => {
             </Card>
           ) : (
             <Tabs defaultValue="summary" className="w-full">
-              <TabsList className="grid grid-cols-2 w-full mb-8">
+              <TabsList className="grid grid-cols-3 w-full mb-8">
                 <TabsTrigger value="summary">
                   <BarChart className="mr-2 h-4 w-4" />
                   Results Summary
+                </TabsTrigger>
+                <TabsTrigger value="charts">
+                  <LineChart className="mr-2 h-4 w-4" />
+                  Charts & Analysis
                 </TabsTrigger>
                 <TabsTrigger value="report">
                   <FileText className="mr-2 h-4 w-4" />
@@ -143,6 +247,7 @@ const ResultsPage = () => {
                             description={testResults.phonological >= 70 
                               ? "Strong phonological skills" 
                               : "Shows challenges with phonological processing"}
+                            date={testDates.phonological}
                           />
                         )}
                         
@@ -153,6 +258,7 @@ const ResultsPage = () => {
                             description={testResults.workingMemory >= 70 
                               ? "Good working memory capacity" 
                               : "Shows challenges with working memory"}
+                            date={testDates.workingMemory}
                           />
                         )}
                         
@@ -163,6 +269,7 @@ const ResultsPage = () => {
                             description={testResults.processingSpeed >= 70 
                               ? "Fast processing speed" 
                               : "Shows slower processing speed"}
+                            date={testDates.processingSpeed}
                           />
                         )}
                         
@@ -173,6 +280,7 @@ const ResultsPage = () => {
                             description={testResults.ran >= 70 
                               ? "Quick naming speed" 
                               : "Shows challenges with naming speed"}
+                            date={testDates.ran}
                           />
                         )}
                         
@@ -183,6 +291,29 @@ const ResultsPage = () => {
                             description={testResults.handwriting >= 70 
                               ? "Few dyslexia indicators in handwriting" 
                               : "Shows dyslexia-related patterns in handwriting"}
+                            date={testDates.handwriting}
+                          />
+                        )}
+                        
+                        {testResults.audioDiscrimination !== undefined && (
+                          <ResultBar 
+                            title="Audio Discrimination" 
+                            score={testResults.audioDiscrimination}
+                            description={testResults.audioDiscrimination >= 70 
+                              ? "Strong auditory processing" 
+                              : "Shows challenges with auditory processing"}
+                            date={testDates.audioDiscrimination}
+                          />
+                        )}
+                        
+                        {testResults.directionSense !== undefined && (
+                          <ResultBar 
+                            title="Direction Sense" 
+                            score={testResults.directionSense}
+                            description={testResults.directionSense >= 70 
+                              ? "Strong directional awareness" 
+                              : "Shows directional confusion"}
+                            date={testDates.directionSense}
                           />
                         )}
                       </div>
@@ -211,10 +342,91 @@ const ResultsPage = () => {
                 </Card>
               </TabsContent>
               
+              <TabsContent value="charts">
+                <Card>
+                  <CardContent className="p-6">
+                    <h3 className="text-xl font-bold text-dyslexai-blue-700 mb-4">Performance Analysis</h3>
+                    
+                    <div className="mb-8">
+                      <h4 className="font-semibold text-dyslexai-blue-700 mb-2">Cognitive Profile</h4>
+                      <div className="h-[300px] w-full">
+                        <ResponsiveContainer width="100%" height="100%">
+                          <RechartsBarChart
+                            data={generateChartData()}
+                            margin={{
+                              top: 20,
+                              right: 30,
+                              left: 20,
+                              bottom: 5,
+                            }}
+                          >
+                            <CartesianGrid strokeDasharray="3 3" />
+                            <XAxis dataKey="name" />
+                            <YAxis domain={[0, 100]} />
+                            <Tooltip />
+                            <Legend />
+                            <Bar dataKey="score" fill="#3b82f6" name="Your Score" />
+                            <Bar dataKey="threshold" fill="#94a3b8" name="Threshold" />
+                          </RechartsBarChart>
+                        </ResponsiveContainer>
+                      </div>
+                      <p className="text-sm text-gray-600 mt-2">
+                        This chart compares your performance across different cognitive areas assessed. Scores above the threshold indicate stronger performance in those areas.
+                      </p>
+                    </div>
+                    
+                    <div>
+                      <h4 className="font-semibold text-dyslexai-blue-700 mb-2">Strengths and Challenges</h4>
+                      <div className="h-[300px] w-full">
+                        <ResponsiveContainer width="100%" height="100%">
+                          <RechartsLineChart
+                            data={generateChartData()}
+                            margin={{
+                              top: 20,
+                              right: 30,
+                              left: 20,
+                              bottom: 5,
+                            }}
+                          >
+                            <CartesianGrid strokeDasharray="3 3" />
+                            <XAxis dataKey="name" />
+                            <YAxis domain={[0, 100]} />
+                            <Tooltip />
+                            <Legend />
+                            <Line 
+                              type="monotone" 
+                              dataKey="score" 
+                              stroke="#3b82f6" 
+                              activeDot={{ r: 8 }} 
+                              name="Your Score"
+                            />
+                            <Line 
+                              type="monotone" 
+                              dataKey="threshold" 
+                              stroke="#ef4444" 
+                              strokeDasharray="5 5" 
+                              name="Threshold"
+                            />
+                          </RechartsLineChart>
+                        </ResponsiveContainer>
+                      </div>
+                      <p className="text-sm text-gray-600 mt-2">
+                        This line chart highlights the pattern of your strengths and challenges across cognitive domains related to dyslexia.
+                      </p>
+                    </div>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+              
               <TabsContent value="report">
                 <DyslexiaReport 
                   userData={{
                     name: userData.name,
+                    age: userData.age ? parseInt(userData.age) : undefined,
+                    school: userData.school,
+                    grade: userData.grade,
+                    email: userData.email,
+                    testDate: getMostRecentTestDate(),
                     date: new Date().toLocaleDateString('en-US', { 
                       year: 'numeric', 
                       month: 'long', 
@@ -237,13 +449,17 @@ interface ResultBarProps {
   title: string;
   score: number;
   description: string;
+  date?: string;
 }
 
-const ResultBar = ({ title, score, description }: ResultBarProps) => {
+const ResultBar = ({ title, score, description, date }: ResultBarProps) => {
   return (
     <div>
       <div className="flex justify-between items-center mb-1">
-        <h4 className="font-medium">{title}</h4>
+        <div>
+          <h4 className="font-medium">{title}</h4>
+          {date && <span className="text-xs text-gray-500">Completed: {new Date(date).toLocaleDateString()}</span>}
+        </div>
         <span className="font-bold">{score}%</span>
       </div>
       <div className="w-full bg-gray-200 rounded-full h-4">

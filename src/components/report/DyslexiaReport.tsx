@@ -1,3 +1,4 @@
+
 import { useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -10,6 +11,10 @@ interface ReportProps {
     name: string;
     age?: number;
     date: string;
+    email?: string;
+    school?: string;
+    grade?: string;
+    testDate?: string;
   };
   testResults: {
     phonological?: number;
@@ -17,6 +22,8 @@ interface ReportProps {
     processingSpeed?: number;
     ran?: number;
     handwriting?: number;
+    audioDiscrimination?: number;
+    directionSense?: number;
   };
   recommendations: string[];
 }
@@ -105,20 +112,83 @@ const DyslexiaReport = ({ userData, testResults, recommendations }: ReportProps)
           <div>
             <p className="text-gray-600">Name: <span className="font-medium">{userData.name}</span></p>
             {userData.age && <p className="text-gray-600">Age: <span className="font-medium">{userData.age} years</span></p>}
+            {userData.school && <p className="text-gray-600">School: <span className="font-medium">{userData.school}</span></p>}
+            {userData.grade && <p className="text-gray-600">Grade: <span className="font-medium">{userData.grade}</span></p>}
           </div>
           <div className="text-right">
-            <p className="text-gray-600">Date: <span className="font-medium">{userData.date}</span></p>
+            <p className="text-gray-600">Assessment Date: <span className="font-medium">{userData.testDate || userData.date}</span></p>
+            <p className="text-gray-600">Report Created: <span className="font-medium">{userData.date}</span></p>
             <p className="text-gray-600">Report ID: <span className="font-medium">{Math.random().toString(36).substring(2, 10).toUpperCase()}</span></p>
           </div>
         </div>
         
         <Card className="mb-6">
           <CardHeader className="pb-2">
-            <CardTitle>Summary</CardTitle>
+            <CardTitle>Assessment Summary</CardTitle>
             <CardDescription>Overall risk level: <span className="font-bold">{getDyslexiaRiskLevel()}</span></CardDescription>
           </CardHeader>
           <CardContent>
-            <p className="text-gray-700">{getRiskDescription()}</p>
+            <p className="text-gray-700 mb-4">{getRiskDescription()}</p>
+            
+            <div className="bg-dyslexai-blue-50 p-4 rounded-lg">
+              <h3 className="font-bold text-dyslexai-blue-700 mb-2">Key Findings</h3>
+              <ul className="list-disc pl-5 space-y-1">
+                {testResults.phonological !== undefined && (
+                  <li>
+                    Phonological Awareness: {testResults.phonological >= 70 
+                      ? "Strong abilities" 
+                      : testResults.phonological >= 50 
+                      ? "Some challenges" 
+                      : "Significant difficulties"}
+                  </li>
+                )}
+                {testResults.workingMemory !== undefined && (
+                  <li>
+                    Working Memory: {testResults.workingMemory >= 70 
+                      ? "Strong capacity" 
+                      : testResults.workingMemory >= 50 
+                      ? "Some limitations" 
+                      : "Significant difficulties"}
+                  </li>
+                )}
+                {testResults.processingSpeed !== undefined && (
+                  <li>
+                    Processing Speed: {testResults.processingSpeed >= 70 
+                      ? "Fast and efficient" 
+                      : testResults.processingSpeed >= 50 
+                      ? "Somewhat slower" 
+                      : "Significantly slower"}
+                  </li>
+                )}
+                {testResults.ran !== undefined && (
+                  <li>
+                    Rapid Naming: {testResults.ran >= 70 
+                      ? "Strong naming speed" 
+                      : testResults.ran >= 50 
+                      ? "Some difficulties" 
+                      : "Significant challenges"}
+                  </li>
+                )}
+                {testResults.audioDiscrimination !== undefined && (
+                  <li>
+                    Audio Discrimination: {testResults.audioDiscrimination >= 70 
+                      ? "Strong auditory processing" 
+                      : testResults.audioDiscrimination >= 50 
+                      ? "Some auditory challenges" 
+                      : "Significant auditory processing difficulties"}
+                  </li>
+                )}
+                {testResults.directionSense !== undefined && (
+                  <li>
+                    Direction Sense: {testResults.directionSense >= 70 
+                      ? "Strong directional awareness" 
+                      : testResults.directionSense >= 50 
+                      ? "Some directional confusion" 
+                      : "Significant directional difficulties"}
+                  </li>
+                )}
+              </ul>
+            </div>
           </CardContent>
         </Card>
         
@@ -245,6 +315,54 @@ const DyslexiaReport = ({ userData, testResults, recommendations }: ReportProps)
                       : testResults.handwriting >= 50
                       ? "Some dyslexia-related patterns in handwriting"
                       : "Significant dyslexia-related patterns in handwriting"}
+                  </p>
+                </div>
+              )}
+              
+              {testResults.audioDiscrimination !== undefined && (
+                <div>
+                  <h3 className="font-medium">Audio Discrimination</h3>
+                  <div className="w-full bg-gray-200 rounded-full h-4 mt-2">
+                    <div 
+                      className="bg-dyslexai-blue-500 h-4 rounded-full" 
+                      style={{ width: `${testResults.audioDiscrimination}%` }}
+                    ></div>
+                  </div>
+                  <div className="flex justify-between text-sm mt-1">
+                    <span>0%</span>
+                    <span>{testResults.audioDiscrimination}%</span>
+                    <span>100%</span>
+                  </div>
+                  <p className="text-sm text-gray-600 mt-1">
+                    {testResults.audioDiscrimination >= 70 
+                      ? "Strong auditory discrimination abilities"
+                      : testResults.audioDiscrimination >= 50
+                      ? "Some challenges with auditory discrimination"
+                      : "Significant difficulties with auditory discrimination, often seen in dyslexia"}
+                  </p>
+                </div>
+              )}
+              
+              {testResults.directionSense !== undefined && (
+                <div>
+                  <h3 className="font-medium">Direction Sense</h3>
+                  <div className="w-full bg-gray-200 rounded-full h-4 mt-2">
+                    <div 
+                      className="bg-dyslexai-blue-500 h-4 rounded-full" 
+                      style={{ width: `${testResults.directionSense}%` }}
+                    ></div>
+                  </div>
+                  <div className="flex justify-between text-sm mt-1">
+                    <span>0%</span>
+                    <span>{testResults.directionSense}%</span>
+                    <span>100%</span>
+                  </div>
+                  <p className="text-sm text-gray-600 mt-1">
+                    {testResults.directionSense >= 70 
+                      ? "Strong directional awareness"
+                      : testResults.directionSense >= 50
+                      ? "Some challenges with directional awareness"
+                      : "Significant difficulties with directional awareness, often associated with dyslexia"}
                   </p>
                 </div>
               )}
