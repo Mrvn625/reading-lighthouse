@@ -24,6 +24,7 @@ function App() {
         <Route path="/checklist" element={<ChecklistPage />} />
         <Route path="/cognitive-tests" element={<CognitiveTests />} />
         <Route path="/handwriting" element={<HandwritingAnalysis />} />
+        <Route path="/handwriting-analysis" element={<HandwritingAnalysis />} />
         <Route path="/results" element={<ResultsPage />} />
         <Route path="*" element={<NotFound />} />
       </Routes>

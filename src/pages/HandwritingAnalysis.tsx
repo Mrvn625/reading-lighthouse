@@ -1,5 +1,5 @@
-
 import { useState, useEffect, useRef } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import PageLayout from "@/components/layout/PageLayout";
 import PageHeader from "@/components/ui/page-header";
 import Section from "@/components/ui/section";
@@ -13,6 +13,8 @@ import { HandwritingAnalysisResult } from "@/utils/handwritingAnalysis";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 const HandwritingAnalysis = () => {
+  const location = useLocation();
+  const navigate = useNavigate();
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
@@ -23,6 +25,10 @@ const HandwritingAnalysis = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
+    if (location.pathname === '/handwriting-analysis') {
+      navigate('/handwriting', { replace: true });
+    }
+
     const loadModel = async () => {
       try {
         setModelLoading(true);
@@ -47,7 +53,7 @@ const HandwritingAnalysis = () => {
     };
 
     loadModel();
-  }, [toast]);
+  }, [toast, location, navigate]);
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files && event.target.files[0]) {
