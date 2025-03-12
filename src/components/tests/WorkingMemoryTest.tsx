@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -13,6 +14,7 @@ type TestStatus = "intro" | "memorize" | "recall" | "feedback" | "completed";
 
 interface SequenceItem {
   value: string;
+  id: number; // Add unique ID to allow selecting the same letter multiple times
   isCorrect?: boolean;
 }
 
@@ -25,6 +27,7 @@ const WorkingMemoryTest = ({ onComplete }: WorkingMemoryTestProps) => {
   const [totalAttempts, setTotalAttempts] = useState(0);
   const [correctAttempts, setCorrectAttempts] = useState(0);
   const [memorizeTimeLeft, setMemorizeTimeLeft] = useState(0);
+  const [sequenceCounter, setSequenceCounter] = useState(0); // Counter to generate unique IDs
   const { toast } = useToast();
 
   // Letters used for the test (excluding similar looking ones)
@@ -35,7 +38,12 @@ const WorkingMemoryTest = ({ onComplete }: WorkingMemoryTestProps) => {
     const sequence: SequenceItem[] = [];
     for (let i = 0; i < length; i++) {
       const randomIndex = Math.floor(Math.random() * letters.length);
-      sequence.push({ value: letters[randomIndex] });
+      // Add unique ID to each item
+      setSequenceCounter(prev => prev + 1);
+      sequence.push({ 
+        value: letters[randomIndex], 
+        id: sequenceCounter + i // Ensure unique ID even with same letters
+      });
     }
     return sequence;
   };
@@ -47,6 +55,7 @@ const WorkingMemoryTest = ({ onComplete }: WorkingMemoryTestProps) => {
     setTotalAttempts(0);
     setCorrectAttempts(0);
     setLevel(3);
+    setSequenceCounter(0);
     showNextSequence(3);
   };
 
@@ -81,7 +90,8 @@ const WorkingMemoryTest = ({ onComplete }: WorkingMemoryTestProps) => {
   const handleLetterClick = (letter: string) => {
     if (status !== "recall") return;
     
-    const newUserSequence = [...userSequence, { value: letter }];
+    setSequenceCounter(prev => prev + 1);
+    const newUserSequence = [...userSequence, { value: letter, id: sequenceCounter }];
     setUserSequence(newUserSequence);
     
     // If user has entered the complete sequence, check it
@@ -228,16 +238,12 @@ const WorkingMemoryTest = ({ onComplete }: WorkingMemoryTestProps) => {
             
             <div className="grid grid-cols-5 gap-2 max-w-md mx-auto">
               {letters.map((letter) => {
-                const isDisabled = userSequence.some(item => item.value === letter);
-                
+                // All letters are always available now
                 return (
                   <Button
                     key={letter}
                     variant="outline"
-                    className={`h-12 text-lg font-semibold ${
-                      isDisabled ? 'opacity-50' : 'hover:bg-dyslexai-blue-50'
-                    }`}
-                    disabled={isDisabled}
+                    className="h-12 text-lg font-semibold hover:bg-dyslexai-blue-50"
                     onClick={() => handleLetterClick(letter)}
                   >
                     {letter}

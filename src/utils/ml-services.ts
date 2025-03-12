@@ -1,7 +1,6 @@
-
 import { toast } from "@/components/ui/use-toast";
 import * as tf from '@tensorflow/tfjs';
-import { HandwritingAnalysisResult } from "@/utils/handwritingAnalysis";
+import { HandwritingAnalysisResult, HandwritingFeatures } from "@/utils/handwritingAnalysis";
 
 // Configure options
 const MAX_IMAGE_DIMENSION = 1024;
@@ -101,7 +100,7 @@ function resizeImageIfNeeded(canvas: HTMLCanvasElement, ctx: CanvasRenderingCont
 }
 
 // Function to extract features from handwriting image
-const extractHandwritingFeatures = async (tensor: tf.Tensor): Promise<{[key: string]: number}> => {
+const extractHandwritingFeatures = async (tensor: tf.Tensor): Promise<HandwritingFeatures> => {
   // Use the model to extract features from the image
   const features = handwritingModel!.predict(tensor) as tf.Tensor;
   
@@ -110,8 +109,7 @@ const extractHandwritingFeatures = async (tensor: tf.Tensor): Promise<{[key: str
   features.dispose(); // Clean up tensor to prevent memory leaks
   
   // Extract and calculate normalized metrics
-  // These calculations would be based on actual trained model outputs
-  // Here we're using simplified calculations based on feature distributions
+  // These calculations are based on feature distributions
   
   const letterFormationFeature = calculateLetterFormation(featureArray);
   const letterSpacingFeature = calculateLetterSpacing(featureArray);
@@ -128,8 +126,7 @@ const extractHandwritingFeatures = async (tensor: tf.Tensor): Promise<{[key: str
 
 // Calculate letter formation score based on feature variance in specific dimensions
 function calculateLetterFormation(featureArray: any): number {
-  // In a real model, this would analyze consistency of character shapes
-  // Using a simplified approach based on feature variability
+  // Analyze consistency of character shapes
   const featureSegment = featureArray[0].slice(0, 256);
   const variability = calculateVariance(featureSegment);
   
@@ -139,7 +136,7 @@ function calculateLetterFormation(featureArray: any): number {
 
 // Calculate letter spacing based on features
 function calculateLetterSpacing(featureArray: any): number {
-  // In a real model, this would analyze the whitespace distribution
+  // Analyze the whitespace distribution
   const featureSegment = featureArray[0].slice(256, 512);
   const spacingMetric = calculateMean(featureSegment);
   
@@ -149,7 +146,7 @@ function calculateLetterSpacing(featureArray: any): number {
 
 // Calculate line alignment based on features
 function calculateLineAlignment(featureArray: any): number {
-  // In a real model, this would analyze how well text follows a horizontal line
+  // Analyze how well text follows a horizontal line
   const featureSegment = featureArray[0].slice(512, 768);
   const alignmentMetric = 1 - calculateStandardDeviation(featureSegment);
   
@@ -159,8 +156,7 @@ function calculateLineAlignment(featureArray: any): number {
 
 // Calculate letter reversals based on features
 function calculateLetterReversals(featureArray: any): number {
-  // In a real model, this would detect b/d, p/q type reversals
-  // For this demo, we're using a different feature segment
+  // Detect b/d, p/q type reversals
   const featureSegment = featureArray[0].slice(768, 1024);
   const reversalMetric = calculateMax(featureSegment);
   

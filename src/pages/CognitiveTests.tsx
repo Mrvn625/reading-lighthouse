@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import PageLayout from "@/components/layout/PageLayout";
 import PageHeader from "@/components/ui/page-header";
@@ -21,6 +21,14 @@ const CognitiveTests = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
   
+  // Load any saved test results on component mount
+  useEffect(() => {
+    const savedResults = localStorage.getItem("testResults");
+    if (savedResults) {
+      setTestResults(JSON.parse(savedResults));
+    }
+  }, []);
+  
   const handleStartTest = (testId: string) => {
     setActiveTab("tests");
     setActiveTest(testId);
@@ -32,10 +40,15 @@ const CognitiveTests = () => {
   };
   
   const handleTestComplete = (testId: string, score: number) => {
-    setTestResults(prev => ({
-      ...prev,
+    const updatedResults = {
+      ...testResults,
       [testId]: score
-    }));
+    };
+    
+    setTestResults(updatedResults);
+    
+    // Save results to localStorage
+    localStorage.setItem("testResults", JSON.stringify(updatedResults));
     
     setActiveTest(null);
     
@@ -46,7 +59,7 @@ const CognitiveTests = () => {
     
     // If all tests are complete, navigate to results
     const requiredTests = ["phonological", "ran", "workingMemory", "processingSpeed"];
-    const completedTests = Object.keys({...testResults, [testId]: score});
+    const completedTests = Object.keys(updatedResults);
     const allTestsComplete = requiredTests.every(test => 
       completedTests.includes(test)
     );
