@@ -70,8 +70,8 @@ const AudioDiscriminationTest: React.FC<AudioDiscriminationTestProps> = ({ onCom
   };
 
   const playAudio = (index: number) => {
-    // Create audio context on first user interaction
-    if (!window.AudioContext && !window.webkitAudioContext) {
+    // Check for Audio API support in a TypeScript-safe way
+    if (!('AudioContext' in window)) {
       console.error("Web Audio API not supported in this browser");
     }
     
