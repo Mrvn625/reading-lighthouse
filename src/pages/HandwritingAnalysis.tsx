@@ -1,16 +1,18 @@
+
 import { useState, useEffect, useRef } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import PageLayout from "@/components/layout/PageLayout";
 import PageHeader from "@/components/ui/page-header";
 import Section from "@/components/ui/section";
 import { Card, CardContent } from "@/components/ui/card";
-import { PenTool, Upload, ArrowRight, Trash2, AlertCircle, FileText } from "lucide-react";
+import { PenTool, Upload, ArrowRight, Trash2, AlertCircle, FileText, Info, BarChart3 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { useToast } from "@/components/ui/use-toast";
 import { analyzeHandwritingWithML, loadHandwritingModel } from "@/utils/ml-services";
 import { HandwritingAnalysisResult } from "@/utils/handwritingAnalysis";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Progress } from "@/components/ui/progress";
 
 const HandwritingAnalysis = () => {
   const location = useLocation();
@@ -107,6 +109,18 @@ const HandwritingAnalysis = () => {
       const result = await analyzeHandwritingWithML(previewUrl);
       setAnalysisResult(result);
       
+      // Save the result to localStorage for later use in the results page
+      const savedResults = localStorage.getItem("assessmentResults") 
+        ? JSON.parse(localStorage.getItem("assessmentResults") || '{}') 
+        : {};
+      
+      savedResults.handwriting = {
+        date: new Date().toISOString(),
+        result: result
+      };
+      
+      localStorage.setItem("assessmentResults", JSON.stringify(savedResults));
+      
       toast({
         title: "Analysis complete",
         description: "Your handwriting analysis is ready to view",
@@ -129,9 +143,14 @@ const HandwritingAnalysis = () => {
     }
   };
 
+  // Format confidence percentage
+  const formatConfidence = (value: number): string => {
+    return `${(value * 100).toFixed(1)}%`;
+  };
+
   return (
     <PageLayout>
-      <div className="dyslexai-container">
+      <div className="dyslexai-container mx-auto px-4 py-6">
         <PageHeader
           title="Handwriting Analysis"
           description="Upload a handwriting sample to identify potential dyslexia-related patterns"
@@ -140,10 +159,10 @@ const HandwritingAnalysis = () => {
 
         <div className="max-w-4xl mx-auto">
           <Section title="How This Test Works">
-            <p>
+            <p className="mb-4 text-gray-700">
               Handwriting can provide valuable insights into potential indicators of dyslexia. People with dyslexia often display certain patterns in their handwriting, such as letter reversals, inconsistent spacing, and difficulties with letter formation.
             </p>
-            <p>
+            <p className="mb-4 text-gray-700">
               For this test, you'll need to upload a clear image of a handwriting sample. For best results, the sample should include at least 2-3 sentences written on lined paper.
             </p>
 
@@ -226,7 +245,7 @@ const HandwritingAnalysis = () => {
                         <img
                           src={previewUrl}
                           alt="Handwriting sample preview"
-                          className="max-h-[300px] rounded-lg border border-gray-200"
+                          className="max-h-[300px] rounded-lg border border-gray-200 object-contain"
                         />
                       </div>
                     )}
@@ -248,13 +267,66 @@ const HandwritingAnalysis = () => {
               <div className="bg-white rounded-xl shadow-md p-6 border border-dyslexai-blue-100">
                 <h3 className="text-xl font-bold text-dyslexai-blue-700 mb-4">Handwriting Assessment</h3>
                 
-                {/* OCR Results Section */}
+                {/* OCR Results Section with Confidence Details */}
                 <div className="mb-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
-                  <div className="flex items-center mb-2">
-                    <FileText className="h-5 w-5 text-dyslexai-blue-500 mr-2" />
-                    <h4 className="font-bold text-dyslexai-blue-700">Recognized Text</h4>
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center">
+                      <FileText className="h-5 w-5 text-dyslexai-blue-500 mr-2" />
+                      <h4 className="font-bold text-dyslexai-blue-700">Recognized Text</h4>
+                    </div>
+                    <div className="text-sm bg-dyslexai-blue-50 text-dyslexai-blue-700 px-2 py-1 rounded-full">
+                      Confidence: {formatConfidence(analysisResult.confidenceDetails?.overallQuality || 0)}
+                    </div>
                   </div>
-                  <p className="text-gray-700 italic">"{analysisResult.recognizedText}"</p>
+                  <p className="text-gray-700 italic mb-3">"{analysisResult.recognizedText}"</p>
+                  
+                  {analysisResult.confidenceDetails && (
+                    <div className="mt-3">
+                      <div className="text-sm font-medium text-gray-600 mb-1 flex items-center">
+                        <BarChart3 className="h-4 w-4 mr-1" /> 
+                        OCR Confidence Breakdown
+                      </div>
+                      
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-2">
+                        <div>
+                          <p className="text-xs text-gray-500 mb-1">Letter Formation</p>
+                          <div className="flex items-center">
+                            <Progress 
+                              value={analysisResult.confidenceDetails.letterFormation * 100} 
+                              className="h-2 flex-grow mr-2" 
+                            />
+                            <span className="text-xs font-medium">
+                              {formatConfidence(analysisResult.confidenceDetails.letterFormation)}
+                            </span>
+                          </div>
+                        </div>
+                        <div>
+                          <p className="text-xs text-gray-500 mb-1">Word Recognition</p>
+                          <div className="flex items-center">
+                            <Progress 
+                              value={analysisResult.confidenceDetails.wordRecognition * 100} 
+                              className="h-2 flex-grow mr-2" 
+                            />
+                            <span className="text-xs font-medium">
+                              {formatConfidence(analysisResult.confidenceDetails.wordRecognition)}
+                            </span>
+                          </div>
+                        </div>
+                        <div>
+                          <p className="text-xs text-gray-500 mb-1">Line Alignment</p>
+                          <div className="flex items-center">
+                            <Progress 
+                              value={analysisResult.confidenceDetails.lineAlignment * 100} 
+                              className="h-2 flex-grow mr-2" 
+                            />
+                            <span className="text-xs font-medium">
+                              {formatConfidence(analysisResult.confidenceDetails.lineAlignment)}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
                 
                 <div className="space-y-6">
@@ -329,14 +401,20 @@ const HandwritingAnalysis = () => {
                 </div>
                 
                 <div className="mt-8 p-4 bg-dyslexai-blue-50 rounded-lg">
-                  <h4 className="font-bold text-dyslexai-blue-700 mb-2">What These Results Mean</h4>
-                  <p className="text-gray-700">
+                  <div className="flex items-center mb-2">
+                    <Info className="h-5 w-5 text-dyslexai-blue-500 mr-2" />
+                    <h4 className="font-bold text-dyslexai-blue-700">What These Results Mean</h4>
+                  </div>
+                  <p className="text-gray-700 mb-2">
                     {analysisResult.overallScore >= 75 ? 
                       "Your handwriting shows few patterns associated with dyslexia. If you're still concerned, continue with our other assessments to gather more information." :
                       analysisResult.overallScore >= 50 ?
                       "Your handwriting shows some patterns that are sometimes associated with dyslexia, particularly in letter formation and spacing. These results suggest it may be worth exploring further assessment options." :
                       "Your handwriting shows several patterns strongly associated with dyslexia, including letter reversals and inconsistent spacing. We recommend completing our other assessments and considering professional evaluation."
                     }
+                  </p>
+                  <p className="text-sm text-gray-600">
+                    <strong>Research basis:</strong> Analysis thresholds are based on studies by Berninger & Wolf (2009), Rosenblum et al. (2010), and the International Dyslexia Association guidelines.
                   </p>
                 </div>
                 

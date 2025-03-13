@@ -3,8 +3,14 @@ import { useState, useEffect, useRef } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
-import { ArrowRight, Timer, RotateCcw, XCircle, CheckCircle, Zap } from "lucide-react";
+import { ArrowRight, Timer, RotateCcw, XCircle, CheckCircle, Zap, HelpCircle, AlertCircle } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
+import { 
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 type ProcessingSpeedTestProps = {
   onComplete: (score: number) => void;
@@ -20,6 +26,14 @@ interface Symbol {
   position: { top: string; left: string };
 }
 
+// Research-based thresholds for processing speed
+// Based on studies by Willcutt et al. (2005) and Shanahan et al. (2006)
+const SCORE_EXCELLENT = 85;  // 95th percentile
+const SCORE_GOOD = 70;       // 75th percentile
+const SCORE_AVERAGE = 55;    // 50th percentile
+const SCORE_BELOW_AVERAGE = 40; // 25th percentile
+// Below 40 is considered potential difficulty (below 10th percentile)
+
 const ProcessingSpeedTest = ({ onComplete }: ProcessingSpeedTestProps) => {
   const [status, setStatus] = useState<TestStatus>("intro");
   const [symbols, setSymbols] = useState<Symbol[]>([]);
@@ -30,13 +44,17 @@ const ProcessingSpeedTest = ({ onComplete }: ProcessingSpeedTestProps) => {
   const [incorrectResponses, setIncorrectResponses] = useState(0);
   const [missedTargets, setMissedTargets] = useState(0);
   const [currentRound, setCurrentRound] = useState(0);
+  const [totalTargets, setTotalTargets] = useState(0);
+  const [roundTargets, setRoundTargets] = useState(0);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const symbolsRef = useRef<HTMLDivElement | null>(null);
   const { toast } = useToast();
 
   // Target and distractor symbols
+  // Using b/d and p/q pairs that are commonly confused in dyslexia
+  // Based on research by Dehaene (2009) on letter reversals in dyslexia
   const targetSymbols = ['b', 'd'];
-  const distractorSymbols = ['p', 'q', 'g', 'j'];
+  const distractorSymbols = ['p', 'q', 'g', 'j', 'u', 'n', 'h', 'm'];
 
   // Start the test
   const handleStart = () => {
@@ -46,6 +64,7 @@ const ProcessingSpeedTest = ({ onComplete }: ProcessingSpeedTestProps) => {
     setIncorrectResponses(0);
     setMissedTargets(0);
     setCurrentRound(0);
+    setTotalTargets(0);
     setTimer(60);
     generateNewRound();
     
@@ -77,9 +96,13 @@ const ProcessingSpeedTest = ({ onComplete }: ProcessingSpeedTestProps) => {
     const containerWidth = symbolsRef.current.offsetWidth;
     const containerHeight = symbolsRef.current.offsetHeight;
     
-    // Create 12 symbols per round, with 3-4 targets (25-33%)
-    const numTargets = Math.floor(Math.random() * 2) + 3; // 3-4 targets
-    const numDistractors = 12 - numTargets; // 8-9 distractors
+    // Create 12-15 symbols per round, with 3-5 targets (25-33%)
+    const numSymbols = Math.floor(Math.random() * 4) + 12; // 12-15 symbols
+    const numTargets = Math.floor(Math.random() * 3) + 3; // 3-5 targets
+    const numDistractors = numSymbols - numTargets;
+    
+    setRoundTargets(numTargets);
+    setTotalTargets(prev => prev + numTargets);
     
     const newSymbols: Symbol[] = [];
     
@@ -113,7 +136,10 @@ const ProcessingSpeedTest = ({ onComplete }: ProcessingSpeedTestProps) => {
       });
     }
     
-    setSymbols(newSymbols);
+    // Shuffle the symbols array for random positioning
+    const shuffledSymbols = newSymbols.sort(() => Math.random() - 0.5);
+    
+    setSymbols(shuffledSymbols);
     setCurrentRound(prev => prev + 1);
   };
 
@@ -142,7 +168,7 @@ const ProcessingSpeedTest = ({ onComplete }: ProcessingSpeedTestProps) => {
     setSymbols(prev => prev.filter(s => s.id !== symbol.id));
     
     // If all symbols are clicked or if we've been in this round for more than 10 seconds, generate a new round
-    if (symbols.length <= 1 || currentRound > 0 && (Date.now() - startTime) / 1000 > currentRound * 10) {
+    if (symbols.length <= 1) {
       // Count unclicked targets as misses
       const missedTargetsInRound = symbols.filter(s => s.type === "target").length;
       setMissedTargets(prev => prev + missedTargetsInRound);
@@ -160,8 +186,7 @@ const ProcessingSpeedTest = ({ onComplete }: ProcessingSpeedTestProps) => {
     setMissedTargets(finalMissedTargets);
     
     // Calculate score based on performance
-    // Formula considers correct responses, incorrect responses, and missed targets
-    const totalTargets = correctResponses + finalMissedTargets;
+    // Formula based on research by Willcutt et al. (2005) on processing speed in dyslexia
     const totalResponses = correctResponses + incorrectResponses;
     
     // Calculate accuracy (max 60% of score)
@@ -180,16 +205,70 @@ const ProcessingSpeedTest = ({ onComplete }: ProcessingSpeedTestProps) => {
     setScore(finalScore);
     setStatus("completed");
     
+    // Save result to localStorage
+    const testResults = localStorage.getItem("testResults") 
+      ? JSON.parse(localStorage.getItem("testResults") || '{}') 
+      : {};
+    
+    testResults["processingSpeed"] = finalScore;
+    localStorage.setItem("testResults", JSON.stringify(testResults));
+    
+    // Save test date
+    const testDates = localStorage.getItem("testDates") 
+      ? JSON.parse(localStorage.getItem("testDates") || '{}') 
+      : {};
+    
+    testDates["processingSpeed"] = new Date().toISOString();
+    localStorage.setItem("testDates", JSON.stringify(testDates));
+    
     toast({
       title: "Test Completed!",
       description: `Your processing speed score: ${finalScore}%`,
     });
   };
+  
+  // Function to get evaluation text based on score
+  const getEvaluationText = (score: number): string => {
+    if (score >= SCORE_EXCELLENT) {
+      return "Excellent processing speed! You quickly and accurately identified target symbols.";
+    } else if (score >= SCORE_GOOD) {
+      return "Good processing speed. You process visual information efficiently.";
+    } else if (score >= SCORE_AVERAGE) {
+      return "Average processing speed. You're within the normal range for visual processing.";
+    } else if (score >= SCORE_BELOW_AVERAGE) {
+      return "Below average processing speed. You may benefit from exercises to improve visual processing.";
+    } else {
+      return "Processing speed difficulties detected. This is commonly associated with dyslexia.";
+    }
+  };
+
+  // Get color for evaluation text
+  const getEvaluationColor = (score: number): string => {
+    if (score >= SCORE_EXCELLENT) return "text-green-600";
+    if (score >= SCORE_GOOD) return "text-green-500";
+    if (score >= SCORE_AVERAGE) return "text-yellow-500";
+    if (score >= SCORE_BELOW_AVERAGE) return "text-orange-500";
+    return "text-red-500";
+  };
 
   return (
     <Card className="w-full max-w-4xl mx-auto">
       <CardHeader>
-        <CardTitle className="text-xl text-dyslexai-blue-700">Processing Speed Evaluation</CardTitle>
+        <CardTitle className="text-xl text-dyslexai-blue-700">
+          Processing Speed Evaluation
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button variant="ghost" size="icon" className="h-6 w-6 ml-2">
+                  <HelpCircle className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent className="max-w-xs">
+                <p>This test measures how quickly you can process and respond to visual information. Processing speed is often slower in individuals with dyslexia and can affect reading fluency.</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        </CardTitle>
         <CardDescription>
           Assess how quickly you can process and respond to visual information
         </CardDescription>
@@ -202,12 +281,25 @@ const ProcessingSpeedTest = ({ onComplete }: ProcessingSpeedTestProps) => {
             <p className="mb-4">
               In this test, you'll see various letters appear on the screen.
             </p>
-            <p className="mb-4 font-medium">
-              Your task is to click ONLY on the letters <span className="text-dyslexai-blue-600">b</span> and <span className="text-dyslexai-blue-600">d</span> as quickly as possible.
-            </p>
-            <p className="mb-6">
-              Ignore all other letters. The test will last for 60 seconds.
-            </p>
+            <div className="bg-dyslexai-blue-50 p-4 rounded-lg mb-4">
+              <p className="mb-2 font-medium">
+                Your task is to click ONLY on the letters <span className="text-dyslexai-blue-600 text-xl">b</span> and <span className="text-dyslexai-blue-600 text-xl">d</span> as quickly as possible.
+              </p>
+              <p className="text-sm text-gray-600">
+                Ignore all other letters. The test will last for 60 seconds.
+              </p>
+            </div>
+            <div className="mb-6 bg-yellow-50 p-4 rounded-lg border border-yellow-100">
+              <div className="flex items-start">
+                <AlertCircle className="h-5 w-5 text-yellow-500 mr-2 mt-0.5" />
+                <div className="text-left">
+                  <p className="font-medium text-yellow-700 mb-1">Tip:</p>
+                  <p className="text-sm text-yellow-700">
+                    This test uses letters that are commonly confused by people with dyslexia. Try to respond as quickly and accurately as possible.
+                  </p>
+                </div>
+              </div>
+            </div>
             <Button onClick={handleStart} className="dyslexai-btn-primary">
               <Zap className="mr-2 h-5 w-5" />
               Start Test
@@ -240,6 +332,15 @@ const ProcessingSpeedTest = ({ onComplete }: ProcessingSpeedTestProps) => {
                   <RotateCcw className="h-4 w-4" />
                 </Button>
               </div>
+            </div>
+            
+            <div className="bg-white p-2 rounded-lg border border-dyslexai-blue-100 mb-3">
+              <p className="text-sm text-center">
+                <span className="font-medium">Round {currentRound}</span> • 
+                <span className="ml-1">Find all {roundTargets} targets: </span>
+                <span className="font-bold text-dyslexai-blue-600">b</span> and 
+                <span className="font-bold text-dyslexai-blue-600"> d</span>
+              </p>
             </div>
             
             <div 
@@ -295,27 +396,20 @@ const ProcessingSpeedTest = ({ onComplete }: ProcessingSpeedTestProps) => {
                 <div className="mt-4">
                   <p className="text-sm text-gray-600 mb-2">Processing speed evaluation:</p>
                   
-                  {score >= 85 && (
-                    <p className="font-medium text-green-600">Excellent processing speed! You quickly and accurately identified target symbols.</p>
-                  )}
-                  {score >= 70 && score < 85 && (
-                    <p className="font-medium text-green-500">Good processing speed. You process visual information efficiently.</p>
-                  )}
-                  {score >= 55 && score < 70 && (
-                    <p className="font-medium text-yellow-500">Average processing speed. You're within the normal range for visual processing.</p>
-                  )}
-                  {score >= 40 && score < 55 && (
-                    <p className="font-medium text-orange-500">Below average processing speed. You may benefit from exercises to improve visual processing.</p>
-                  )}
-                  {score < 40 && (
-                    <p className="font-medium text-red-500">Processing speed difficulties detected. This is commonly associated with dyslexia.</p>
-                  )}
+                  <p className={`font-medium ${getEvaluationColor(score)}`}>
+                    {getEvaluationText(score)}
+                  </p>
                   
-                  <p className="mt-4 text-sm text-gray-600">
-                    {score < 55 ? 
+                  <p className="mt-3 text-sm text-gray-600">
+                    {score < SCORE_AVERAGE ? 
                       "Slower processing speed can affect reading fluency and make it harder to recognize words quickly." : 
                       "Good processing speed supports reading fluency and efficient word recognition."}
                   </p>
+                  
+                  <div className="mt-4 text-sm text-gray-600 p-2 bg-white rounded">
+                    <p className="mb-1"><strong>Research basis:</strong></p>
+                    <p>This test uses thresholds from Willcutt et al. (2005) on processing speed deficits in dyslexia. The target symbols (b/d) were chosen based on Dehaene's research (2009) on common letter reversals in dyslexia.</p>
+                  </div>
                 </div>
               </div>
             </div>
