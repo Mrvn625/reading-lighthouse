@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import PageLayout from "@/components/layout/PageLayout";
 import PageHeader from "@/components/ui/page-header";
@@ -30,31 +29,26 @@ const ResultsPage = () => {
   const { toast } = useToast();
   
   useEffect(() => {
-    // Load test results from localStorage
     const savedResults = localStorage.getItem("testResults");
     if (savedResults) {
       setTestResults(JSON.parse(savedResults));
     }
     
-    // Load test dates from localStorage
     const savedDates = localStorage.getItem("testDates");
     if (savedDates) {
       setTestDates(JSON.parse(savedDates));
     }
     
-    // Load user data if available
     const savedUserData = localStorage.getItem("user");
     if (savedUserData) {
       setUserData(JSON.parse(savedUserData));
     }
 
-    // Load checklist results if available
     const savedChecklist = localStorage.getItem("checklistResults");
     if (savedChecklist) {
       setChecklistResults(JSON.parse(savedChecklist));
     }
 
-    // Load handwriting results if available
     const savedHandwriting = localStorage.getItem("assessmentResults");
     if (savedHandwriting) {
       const assessmentResults = JSON.parse(savedHandwriting);
@@ -67,9 +61,6 @@ const ResultsPage = () => {
   const getRecommendations = () => {
     const avgScore = calculateAverageScore();
     
-    // Research-based recommendations
-    // Based on International Dyslexia Association guidelines and studies by
-    // Shaywitz et al. (2008) and National Reading Panel (2000)
     const baseRecommendations = [
       "Continue to practice reading regularly with materials at an appropriate level.",
       "Use assistive technologies like text-to-speech when needed for longer reading assignments.",
@@ -176,7 +167,6 @@ const ResultsPage = () => {
     return data;
   };
 
-  // Calculate the most recent test date
   const getMostRecentTestDate = () => {
     if (Object.keys(testDates).length === 0) {
       return new Date().toLocaleDateString('en-US', { 
@@ -186,9 +176,7 @@ const ResultsPage = () => {
       });
     }
     
-    // Convert date strings to Date objects
     const dates = Object.values(testDates).map(dateStr => new Date(dateStr));
-    // Find the most recent date
     const mostRecent = new Date(Math.max(...dates.map(date => date.getTime())));
     
     return mostRecent.toLocaleDateString('en-US', { 
@@ -482,8 +470,7 @@ const ResultsPage = () => {
                   }}
                   testResults={{
                     ...testResults,
-                    handwriting: handwritingResults?.overallScore,
-                    checklist: checklistResults?.score
+                    handwriting: handwritingResults?.overallScore
                   }}
                   recommendations={getRecommendations()}
                   handwritingDetails={handwritingResults}
@@ -506,7 +493,6 @@ interface ResultBarProps {
 }
 
 const ResultBar = ({ title, score, description, date }: ResultBarProps) => {
-  // Get color based on score - uses research-based thresholds
   const getBarColor = (score: number): string => {
     if (score >= 80) return "bg-green-500"; 
     if (score >= 70) return "bg-green-400";
