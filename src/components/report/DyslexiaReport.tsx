@@ -6,7 +6,7 @@ import { Download, Printer } from "lucide-react";
 import html2pdf from "html2pdf.js";
 import { useToast } from "@/components/ui/use-toast";
 
-interface ReportProps {
+export interface ReportProps {
   userData: {
     name: string;
     age?: number;
