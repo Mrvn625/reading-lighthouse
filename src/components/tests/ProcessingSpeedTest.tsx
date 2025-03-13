@@ -34,10 +34,13 @@ const SCORE_AVERAGE = 55;    // 50th percentile
 const SCORE_BELOW_AVERAGE = 40; // 25th percentile
 // Below 40 is considered potential difficulty (below 10th percentile)
 
+const MAX_TEST_TIME = 60; // Maximum test time in seconds
+const MIN_TEST_TIME = 15; // Minimum test time in seconds before allowing submission
+
 const ProcessingSpeedTest = ({ onComplete }: ProcessingSpeedTestProps) => {
   const [status, setStatus] = useState<TestStatus>("intro");
   const [symbols, setSymbols] = useState<Symbol[]>([]);
-  const [timer, setTimer] = useState(60); // 60-second test
+  const [timer, setTimer] = useState(MAX_TEST_TIME);
   const [startTime, setStartTime] = useState(0);
   const [score, setScore] = useState(0);
   const [correctResponses, setCorrectResponses] = useState(0);
@@ -46,6 +49,7 @@ const ProcessingSpeedTest = ({ onComplete }: ProcessingSpeedTestProps) => {
   const [currentRound, setCurrentRound] = useState(0);
   const [totalTargets, setTotalTargets] = useState(0);
   const [roundTargets, setRoundTargets] = useState(0);
+  const [canSubmitEarly, setCanSubmitEarly] = useState(false);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const symbolsRef = useRef<HTMLDivElement | null>(null);
   const { toast } = useToast();
@@ -65,13 +69,19 @@ const ProcessingSpeedTest = ({ onComplete }: ProcessingSpeedTestProps) => {
     setMissedTargets(0);
     setCurrentRound(0);
     setTotalTargets(0);
-    setTimer(60);
+    setTimer(MAX_TEST_TIME);
+    setCanSubmitEarly(false);
     generateNewRound();
     
     toast({
       title: "Test Started",
       description: "Click on 'b' and 'd' as quickly as you can!",
     });
+
+    // Set a timer to enable early submission after MIN_TEST_TIME seconds
+    setTimeout(() => {
+      setCanSubmitEarly(true);
+    }, MIN_TEST_TIME * 1000);
   };
 
   // Handle the timer
@@ -177,6 +187,11 @@ const ProcessingSpeedTest = ({ onComplete }: ProcessingSpeedTestProps) => {
     }
   };
 
+  // Submit the test early
+  const handleSubmitTest = () => {
+    completeTest();
+  };
+
   // Complete the test and calculate the score
   const completeTest = () => {
     if (timerRef.current) clearTimeout(timerRef.current);
@@ -278,21 +293,21 @@ const ProcessingSpeedTest = ({ onComplete }: ProcessingSpeedTestProps) => {
         {status === "intro" && (
           <div className="text-center p-8">
             <h3 className="text-lg font-bold mb-4">Instructions</h3>
-            <p className="mb-4">
+            <p className="mb-4 text-left">
               In this test, you'll see various letters appear on the screen.
             </p>
-            <div className="bg-dyslexai-blue-50 p-4 rounded-lg mb-4">
+            <div className="bg-dyslexai-blue-50 p-4 rounded-lg mb-4 text-left">
               <p className="mb-2 font-medium">
                 Your task is to click ONLY on the letters <span className="text-dyslexai-blue-600 text-xl">b</span> and <span className="text-dyslexai-blue-600 text-xl">d</span> as quickly as possible.
               </p>
               <p className="text-sm text-gray-600">
-                Ignore all other letters. The test will last for 60 seconds.
+                Ignore all other letters. The test will last up to 60 seconds, but you can submit your results after 15 seconds.
               </p>
             </div>
-            <div className="mb-6 bg-yellow-50 p-4 rounded-lg border border-yellow-100">
+            <div className="mb-6 bg-yellow-50 p-4 rounded-lg border border-yellow-100 text-left">
               <div className="flex items-start">
                 <AlertCircle className="h-5 w-5 text-yellow-500 mr-2 mt-0.5" />
-                <div className="text-left">
+                <div>
                   <p className="font-medium text-yellow-700 mb-1">Tip:</p>
                   <p className="text-sm text-yellow-700">
                     This test uses letters that are commonly confused by people with dyslexia. Try to respond as quickly and accurately as possible.
@@ -314,7 +329,7 @@ const ProcessingSpeedTest = ({ onComplete }: ProcessingSpeedTestProps) => {
                 <Timer className="mr-2 h-5 w-5 text-dyslexai-blue-500" />
                 <span className="font-semibold">{Math.ceil(timer)}s</span>
                 <Progress 
-                  value={(timer / 60) * 100} 
+                  value={(timer / MAX_TEST_TIME) * 100} 
                   className="w-24 ml-3 h-2"
                 />
               </div>
@@ -335,7 +350,7 @@ const ProcessingSpeedTest = ({ onComplete }: ProcessingSpeedTestProps) => {
             </div>
             
             <div className="bg-white p-2 rounded-lg border border-dyslexai-blue-100 mb-3">
-              <p className="text-sm text-center">
+              <p className="text-sm text-left">
                 <span className="font-medium">Round {currentRound}</span> • 
                 <span className="ml-1">Find all {roundTargets} targets: </span>
                 <span className="font-bold text-dyslexai-blue-600">b</span> and 
@@ -367,6 +382,17 @@ const ProcessingSpeedTest = ({ onComplete }: ProcessingSpeedTestProps) => {
                 </div>
               ))}
             </div>
+
+            {canSubmitEarly && (
+              <div className="flex justify-center mt-4">
+                <Button 
+                  className="dyslexai-btn-primary"
+                  onClick={handleSubmitTest}
+                >
+                  Submit Results
+                </Button>
+              </div>
+            )}
           </div>
         )}
         
@@ -400,14 +426,20 @@ const ProcessingSpeedTest = ({ onComplete }: ProcessingSpeedTestProps) => {
                     {getEvaluationText(score)}
                   </p>
                   
-                  <p className="mt-3 text-sm text-gray-600">
+                  <p className="mt-3 text-sm text-gray-600 text-left">
                     {score < SCORE_AVERAGE ? 
                       "Slower processing speed can affect reading fluency and make it harder to recognize words quickly." : 
                       "Good processing speed supports reading fluency and efficient word recognition."}
                   </p>
                   
-                  <div className="mt-4 text-sm text-gray-600 p-2 bg-white rounded">
-                    <p className="mb-1"><strong>Research basis:</strong></p>
+                  <div className="mt-4 text-sm text-gray-600 p-2 bg-white rounded text-left">
+                    <p className="mb-1"><strong>Score calculation:</strong></p>
+                    <ul className="list-disc pl-5 space-y-1">
+                      <li>Accuracy: {Math.round((correctResponses / (correctResponses + incorrectResponses || 1)) * 60)}% (60% weight)</li>
+                      <li>Completion Rate: {Math.round((correctResponses / (totalTargets || 1)) * 40)}% (40% weight)</li>
+                      <li>Final Score: {score}%</li>
+                    </ul>
+                    <p className="mt-2"><strong>Research basis:</strong></p>
                     <p>This test uses thresholds from Willcutt et al. (2005) on processing speed deficits in dyslexia. The target symbols (b/d) were chosen based on Dehaene's research (2009) on common letter reversals in dyslexia.</p>
                   </div>
                 </div>

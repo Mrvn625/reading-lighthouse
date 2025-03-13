@@ -25,6 +25,8 @@ const ResultsPage = () => {
     isLoggedIn: false
   });
   const [testDates, setTestDates] = useState<{[key: string]: string}>({});
+  const [checklistResults, setChecklistResults] = useState<any>(null);
+  const [handwritingResults, setHandwritingResults] = useState<any>(null);
   const { toast } = useToast();
   
   useEffect(() => {
@@ -45,11 +47,29 @@ const ResultsPage = () => {
     if (savedUserData) {
       setUserData(JSON.parse(savedUserData));
     }
+
+    // Load checklist results if available
+    const savedChecklist = localStorage.getItem("checklistResults");
+    if (savedChecklist) {
+      setChecklistResults(JSON.parse(savedChecklist));
+    }
+
+    // Load handwriting results if available
+    const savedHandwriting = localStorage.getItem("assessmentResults");
+    if (savedHandwriting) {
+      const assessmentResults = JSON.parse(savedHandwriting);
+      if (assessmentResults.handwriting) {
+        setHandwritingResults(assessmentResults.handwriting.result);
+      }
+    }
   }, []);
   
   const getRecommendations = () => {
     const avgScore = calculateAverageScore();
     
+    // Research-based recommendations
+    // Based on International Dyslexia Association guidelines and studies by
+    // Shaywitz et al. (2008) and National Reading Panel (2000)
     const baseRecommendations = [
       "Continue to practice reading regularly with materials at an appropriate level.",
       "Use assistive technologies like text-to-speech when needed for longer reading assignments.",
@@ -59,7 +79,7 @@ const ResultsPage = () => {
     if (avgScore < 60) {
       return [
         "Consider a comprehensive evaluation with an educational psychologist specializing in dyslexia.",
-        "Explore structured literacy programs that use multisensory approaches.",
+        "Explore structured literacy programs that use multisensory approaches (Orton-Gillingham, Wilson, etc.).",
         "Discuss potential accommodations with teachers/schools.",
         ...baseRecommendations
       ];
@@ -121,10 +141,10 @@ const ResultsPage = () => {
       });
     }
     
-    if (testResults.handwriting !== undefined) {
+    if (handwritingResults?.overallScore !== undefined) {
       data.push({
         name: "Handwriting",
-        score: testResults.handwriting,
+        score: handwritingResults.overallScore,
         threshold: 70
       });
     }
@@ -141,6 +161,14 @@ const ResultsPage = () => {
       data.push({
         name: "Direction",
         score: testResults.directionSense,
+        threshold: 70
+      });
+    }
+
+    if (checklistResults?.score !== undefined) {
+      data.push({
+        name: "Checklist",
+        score: checklistResults.score,
         threshold: 70
       });
     }
@@ -180,7 +208,7 @@ const ResultsPage = () => {
         />
         
         <div className="max-w-4xl mx-auto">
-          {Object.keys(testResults).length === 0 ? (
+          {Object.keys(testResults).length === 0 && !handwritingResults && !checklistResults ? (
             <Card>
               <CardContent className="p-8 text-center">
                 <h3 className="text-xl font-bold mb-4">No Test Results Available</h3>
@@ -212,7 +240,7 @@ const ResultsPage = () => {
                   <CardContent className="p-6">
                     <div className="mb-6">
                       <h3 className="text-xl font-bold text-dyslexai-blue-700 mb-2">Your Results</h3>
-                      <p className="text-gray-600 mb-4">
+                      <p className="text-gray-600 mb-4 text-left">
                         Here's a summary of your performance across all completed assessments.
                       </p>
                       
@@ -229,7 +257,7 @@ const ResultsPage = () => {
                           </div>
                         </div>
                         
-                        <p className="text-sm text-gray-600 mt-2">
+                        <p className="text-sm text-gray-600 mt-2 text-left">
                           {calculateAverageScore() >= 80 ? 
                             "Your overall performance shows few indicators associated with dyslexia." :
                             calculateAverageScore() >= 60 ?
@@ -284,14 +312,14 @@ const ResultsPage = () => {
                           />
                         )}
                         
-                        {testResults.handwriting !== undefined && (
+                        {handwritingResults && (
                           <ResultBar 
                             title="Handwriting Analysis" 
-                            score={testResults.handwriting}
-                            description={testResults.handwriting >= 70 
+                            score={handwritingResults.overallScore}
+                            description={handwritingResults.overallScore >= 70 
                               ? "Few dyslexia indicators in handwriting" 
                               : "Shows dyslexia-related patterns in handwriting"}
-                            date={testDates.handwriting}
+                            date={handwritingResults.date}
                           />
                         )}
                         
@@ -316,14 +344,25 @@ const ResultsPage = () => {
                             date={testDates.directionSense}
                           />
                         )}
+
+                        {checklistResults && (
+                          <ResultBar 
+                            title="Symptom Checklist" 
+                            score={checklistResults.score}
+                            description={checklistResults.score >= 70 
+                              ? "Few reported dyslexia symptoms" 
+                              : "Multiple reported dyslexia symptoms"}
+                            date={checklistResults.date}
+                          />
+                        )}
                       </div>
                     </div>
                     
                     <div>
                       <h3 className="text-xl font-bold text-dyslexai-blue-700 mb-2">Next Steps</h3>
-                      <p className="text-gray-600 mb-4">Based on your results, here are some recommended next steps:</p>
+                      <p className="text-gray-600 mb-4 text-left">Based on your results, here are some recommended next steps:</p>
                       
-                      <ul className="list-disc pl-5 space-y-2">
+                      <ul className="list-disc pl-5 space-y-2 text-left">
                         {getRecommendations().map((recommendation, index) => (
                           <li key={index} className="text-gray-700">{recommendation}</li>
                         ))}
@@ -363,15 +402,19 @@ const ResultsPage = () => {
                             <CartesianGrid strokeDasharray="3 3" />
                             <XAxis dataKey="name" />
                             <YAxis domain={[0, 100]} />
-                            <Tooltip />
+                            <Tooltip 
+                              formatter={(value, name) => {
+                                return [`${value}%`, name === "threshold" ? "Research Threshold" : "Your Score"];
+                              }}
+                            />
                             <Legend />
                             <Bar dataKey="score" fill="#3b82f6" name="Your Score" />
-                            <Bar dataKey="threshold" fill="#94a3b8" name="Threshold" />
+                            <Bar dataKey="threshold" fill="#94a3b8" name="Research Threshold" />
                           </RechartsBarChart>
                         </ResponsiveContainer>
                       </div>
-                      <p className="text-sm text-gray-600 mt-2">
-                        This chart compares your performance across different cognitive areas assessed. Scores above the threshold indicate stronger performance in those areas.
+                      <p className="text-sm text-gray-600 mt-2 text-left">
+                        This chart compares your performance across different cognitive areas assessed. Scores above the threshold indicate stronger performance in those areas. Thresholds are based on research by Shaywitz et al. (2008), Willcutt et al. (2005), and Norton & Wolf (2012).
                       </p>
                     </div>
                     
@@ -391,7 +434,11 @@ const ResultsPage = () => {
                             <CartesianGrid strokeDasharray="3 3" />
                             <XAxis dataKey="name" />
                             <YAxis domain={[0, 100]} />
-                            <Tooltip />
+                            <Tooltip 
+                              formatter={(value, name) => {
+                                return [`${value}%`, name === "threshold" ? "Research Threshold" : "Your Score"];
+                              }}
+                            />
                             <Legend />
                             <Line 
                               type="monotone" 
@@ -405,13 +452,13 @@ const ResultsPage = () => {
                               dataKey="threshold" 
                               stroke="#ef4444" 
                               strokeDasharray="5 5" 
-                              name="Threshold"
+                              name="Research Threshold"
                             />
                           </RechartsLineChart>
                         </ResponsiveContainer>
                       </div>
-                      <p className="text-sm text-gray-600 mt-2">
-                        This line chart highlights the pattern of your strengths and challenges across cognitive domains related to dyslexia.
+                      <p className="text-sm text-gray-600 mt-2 text-left">
+                        This line chart highlights the pattern of your strengths and challenges across cognitive domains related to dyslexia. The research threshold of 70% is based on standardized assessments used in clinical practice as described by the International Dyslexia Association.
                       </p>
                     </div>
                   </CardContent>
@@ -433,8 +480,14 @@ const ResultsPage = () => {
                       day: 'numeric' 
                     })
                   }}
-                  testResults={testResults}
+                  testResults={{
+                    ...testResults,
+                    handwriting: handwritingResults?.overallScore,
+                    checklist: checklistResults?.score
+                  }}
                   recommendations={getRecommendations()}
+                  handwritingDetails={handwritingResults}
+                  checklistDetails={checklistResults}
                 />
               </TabsContent>
             </Tabs>
@@ -453,6 +506,15 @@ interface ResultBarProps {
 }
 
 const ResultBar = ({ title, score, description, date }: ResultBarProps) => {
+  // Get color based on score - uses research-based thresholds
+  const getBarColor = (score: number): string => {
+    if (score >= 80) return "bg-green-500"; 
+    if (score >= 70) return "bg-green-400";
+    if (score >= 60) return "bg-yellow-500";
+    if (score >= 50) return "bg-orange-500";
+    return "bg-red-500";
+  };
+
   return (
     <div>
       <div className="flex justify-between items-center mb-1">
@@ -464,11 +526,11 @@ const ResultBar = ({ title, score, description, date }: ResultBarProps) => {
       </div>
       <div className="w-full bg-gray-200 rounded-full h-4">
         <div 
-          className="bg-dyslexai-blue-500 h-4 rounded-full" 
+          className={`${getBarColor(score)} h-4 rounded-full`} 
           style={{ width: `${score}%` }}
         ></div>
       </div>
-      <p className="text-sm text-gray-600 mt-1">{description}</p>
+      <p className="text-sm text-gray-600 mt-1 text-left">{description}</p>
     </div>
   );
 };

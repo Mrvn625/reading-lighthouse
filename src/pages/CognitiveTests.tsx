@@ -156,7 +156,7 @@ const CognitiveTests = () => {
                 <div className="space-y-6">
                   <div className="bg-dyslexai-blue-50 p-4 rounded-lg mb-4">
                     <h3 className="font-bold text-dyslexai-blue-700 mb-2">Assessment Battery</h3>
-                    <p>
+                    <p className="text-left">
                       Complete the following assessments to get a comprehensive evaluation. 
                       Each test takes approximately 3-5 minutes to complete. You can take them 
                       in any order and return to continue later.
@@ -246,7 +246,7 @@ const TestCard = ({ title, description, isCompleted, onStart, score, date }: Tes
     <div className="bg-white rounded-xl shadow-md overflow-hidden border border-gray-200">
       <div className="p-6">
         <h3 className="font-bold text-xl mb-2">{title}</h3>
-        <p className="text-gray-600 mb-4">{description}</p>
+        <p className="text-gray-600 mb-4 text-left">{description}</p>
         
         {isCompleted ? (
           <div>

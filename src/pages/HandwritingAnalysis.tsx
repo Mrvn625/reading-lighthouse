@@ -159,10 +159,10 @@ const HandwritingAnalysis = () => {
 
         <div className="max-w-4xl mx-auto">
           <Section title="How This Test Works">
-            <p className="mb-4 text-gray-700">
+            <p className="mb-4 text-gray-700 text-left">
               Handwriting can provide valuable insights into potential indicators of dyslexia. People with dyslexia often display certain patterns in their handwriting, such as letter reversals, inconsistent spacing, and difficulties with letter formation.
             </p>
-            <p className="mb-4 text-gray-700">
+            <p className="mb-4 text-gray-700 text-left">
               For this test, you'll need to upload a clear image of a handwriting sample. For best results, the sample should include at least 2-3 sentences written on lined paper.
             </p>
 
@@ -267,67 +267,59 @@ const HandwritingAnalysis = () => {
               <div className="bg-white rounded-xl shadow-md p-6 border border-dyslexai-blue-100">
                 <h3 className="text-xl font-bold text-dyslexai-blue-700 mb-4">Handwriting Assessment</h3>
                 
-                {/* OCR Results Section with Confidence Details */}
-                <div className="mb-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="flex items-center">
-                      <FileText className="h-5 w-5 text-dyslexai-blue-500 mr-2" />
-                      <h4 className="font-bold text-dyslexai-blue-700">Recognized Text</h4>
+                {/* Confidence Details Section */}
+                {analysisResult.confidenceDetails && (
+                  <div className="mb-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center">
+                        <BarChart3 className="h-5 w-5 text-dyslexai-blue-500 mr-2" />
+                        <h4 className="font-bold text-dyslexai-blue-700">Analysis Confidence</h4>
+                      </div>
+                      <div className="text-sm bg-dyslexai-blue-50 text-dyslexai-blue-700 px-2 py-1 rounded-full">
+                        Overall: {formatConfidence(analysisResult.confidenceDetails?.overallQuality || 0)}
+                      </div>
                     </div>
-                    <div className="text-sm bg-dyslexai-blue-50 text-dyslexai-blue-700 px-2 py-1 rounded-full">
-                      Confidence: {formatConfidence(analysisResult.confidenceDetails?.overallQuality || 0)}
+                    
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-2">
+                      <div>
+                        <p className="text-xs text-gray-500 mb-1">Letter Formation</p>
+                        <div className="flex items-center">
+                          <Progress 
+                            value={analysisResult.confidenceDetails.letterFormation * 100} 
+                            className="h-2 flex-grow mr-2" 
+                          />
+                          <span className="text-xs font-medium">
+                            {formatConfidence(analysisResult.confidenceDetails.letterFormation)}
+                          </span>
+                        </div>
+                      </div>
+                      <div>
+                        <p className="text-xs text-gray-500 mb-1">Word Recognition</p>
+                        <div className="flex items-center">
+                          <Progress 
+                            value={analysisResult.confidenceDetails.wordRecognition * 100} 
+                            className="h-2 flex-grow mr-2" 
+                          />
+                          <span className="text-xs font-medium">
+                            {formatConfidence(analysisResult.confidenceDetails.wordRecognition)}
+                          </span>
+                        </div>
+                      </div>
+                      <div>
+                        <p className="text-xs text-gray-500 mb-1">Line Alignment</p>
+                        <div className="flex items-center">
+                          <Progress 
+                            value={analysisResult.confidenceDetails.lineAlignment * 100} 
+                            className="h-2 flex-grow mr-2" 
+                          />
+                          <span className="text-xs font-medium">
+                            {formatConfidence(analysisResult.confidenceDetails.lineAlignment)}
+                          </span>
+                        </div>
+                      </div>
                     </div>
                   </div>
-                  <p className="text-gray-700 italic mb-3">"{analysisResult.recognizedText}"</p>
-                  
-                  {analysisResult.confidenceDetails && (
-                    <div className="mt-3">
-                      <div className="text-sm font-medium text-gray-600 mb-1 flex items-center">
-                        <BarChart3 className="h-4 w-4 mr-1" /> 
-                        OCR Confidence Breakdown
-                      </div>
-                      
-                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-2">
-                        <div>
-                          <p className="text-xs text-gray-500 mb-1">Letter Formation</p>
-                          <div className="flex items-center">
-                            <Progress 
-                              value={analysisResult.confidenceDetails.letterFormation * 100} 
-                              className="h-2 flex-grow mr-2" 
-                            />
-                            <span className="text-xs font-medium">
-                              {formatConfidence(analysisResult.confidenceDetails.letterFormation)}
-                            </span>
-                          </div>
-                        </div>
-                        <div>
-                          <p className="text-xs text-gray-500 mb-1">Word Recognition</p>
-                          <div className="flex items-center">
-                            <Progress 
-                              value={analysisResult.confidenceDetails.wordRecognition * 100} 
-                              className="h-2 flex-grow mr-2" 
-                            />
-                            <span className="text-xs font-medium">
-                              {formatConfidence(analysisResult.confidenceDetails.wordRecognition)}
-                            </span>
-                          </div>
-                        </div>
-                        <div>
-                          <p className="text-xs text-gray-500 mb-1">Line Alignment</p>
-                          <div className="flex items-center">
-                            <Progress 
-                              value={analysisResult.confidenceDetails.lineAlignment * 100} 
-                              className="h-2 flex-grow mr-2" 
-                            />
-                            <span className="text-xs font-medium">
-                              {formatConfidence(analysisResult.confidenceDetails.lineAlignment)}
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                </div>
+                )}
                 
                 <div className="space-y-6">
                   {/* Traditional Metrics */}
@@ -395,8 +387,26 @@ const HandwritingAnalysis = () => {
                           {analysisResult.corrections.count} detected
                         </span>
                       </div>
-                      <p className="text-gray-600 text-sm">{analysisResult.corrections.description}</p>
+                      <p className="text-gray-600 text-sm text-left">{analysisResult.corrections.description}</p>
                     </div>
+                  </div>
+                </div>
+
+                {/* Score calculation details */}
+                <div className="mt-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
+                  <h4 className="font-bold text-dyslexai-blue-700 mb-2">Score Calculation</h4>
+                  <p className="text-gray-700 text-sm mb-2 text-left">
+                    Your overall handwriting score is: <strong>{analysisResult.overallScore}%</strong>
+                  </p>
+                  <div className="text-sm text-gray-600 text-left">
+                    <p className="mb-1"><strong>Formula used:</strong></p>
+                    <ul className="list-disc pl-5 space-y-1">
+                      <li>Letter Formation: {analysisResult.letterFormation.score * 4}% (20% weight)</li>
+                      <li>Letter Spacing: {analysisResult.letterSpacing.score * 4}% (20% weight)</li>
+                      <li>Line Alignment: {analysisResult.lineAlignment.score * 3}% (15% weight)</li>
+                      <li>Letter Reversals: {analysisResult.letterReversals.score * 5}% (25% weight)</li>
+                      <li>Spelling & Phonetic Accuracy: {(analysisResult.spellingAccuracy.score + analysisResult.phoneticAccuracy.score) * 2}% (20% weight)</li>
+                    </ul>
                   </div>
                 </div>
                 
@@ -405,7 +415,7 @@ const HandwritingAnalysis = () => {
                     <Info className="h-5 w-5 text-dyslexai-blue-500 mr-2" />
                     <h4 className="font-bold text-dyslexai-blue-700">What These Results Mean</h4>
                   </div>
-                  <p className="text-gray-700 mb-2">
+                  <p className="text-gray-700 mb-2 text-left">
                     {analysisResult.overallScore >= 75 ? 
                       "Your handwriting shows few patterns associated with dyslexia. If you're still concerned, continue with our other assessments to gather more information." :
                       analysisResult.overallScore >= 50 ?
@@ -413,7 +423,7 @@ const HandwritingAnalysis = () => {
                       "Your handwriting shows several patterns strongly associated with dyslexia, including letter reversals and inconsistent spacing. We recommend completing our other assessments and considering professional evaluation."
                     }
                   </p>
-                  <p className="text-sm text-gray-600">
+                  <p className="text-sm text-gray-600 text-left">
                     <strong>Research basis:</strong> Analysis thresholds are based on studies by Berninger & Wolf (2009), Rosenblum et al. (2010), and the International Dyslexia Association guidelines.
                   </p>
                 </div>
@@ -458,7 +468,7 @@ const HandwritingAnalysis = () => {
               />
             </div>
             
-            <p className="mt-4 text-gray-600 italic">
+            <p className="mt-4 text-gray-600 italic text-left">
               Note: This analysis provides indications only and should not be considered a formal diagnosis. Handwriting can be affected by many factors besides dyslexia, including age, motor skills, and writing conditions.
             </p>
           </Section>
@@ -492,7 +502,7 @@ const InstructionCard = ({ number, title, description }: InstructionCardProps) =
         </div>
         <h3 className="font-bold text-dyslexai-blue-700">{title}</h3>
       </div>
-      <p className="text-gray-600">{description}</p>
+      <p className="text-gray-600 text-left">{description}</p>
     </div>
   );
 };
@@ -506,7 +516,7 @@ const FeatureCard = ({ title, description }: FeatureCardProps) => {
   return (
     <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
       <h3 className="font-bold text-dyslexai-blue-700 mb-2">{title}</h3>
-      <p className="text-gray-600 text-sm">{description}</p>
+      <p className="text-gray-600 text-sm text-left">{description}</p>
     </div>
   );
 };
@@ -537,7 +547,7 @@ const ResultItem = ({ title, score, maxScore, description }: ResultItemProps) =>
         <h4 className="font-bold">{title}</h4>
         <div className="flex space-x-1">{dots}</div>
       </div>
-      <p className="text-gray-600 text-sm">{description}</p>
+      <p className="text-gray-600 text-sm text-left">{description}</p>
     </div>
   );
 };
