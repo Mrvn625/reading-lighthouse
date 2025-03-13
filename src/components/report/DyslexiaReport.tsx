@@ -26,9 +26,11 @@ interface ReportProps {
     directionSense?: number;
   };
   recommendations: string[];
+  handwritingDetails?: any;
+  checklistDetails?: any;
 }
 
-const DyslexiaReport = ({ userData, testResults, recommendations }: ReportProps) => {
+const DyslexiaReport = ({ userData, testResults, recommendations, handwritingDetails, checklistDetails }: ReportProps) => {
   const reportRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
 
@@ -185,6 +187,24 @@ const DyslexiaReport = ({ userData, testResults, recommendations }: ReportProps)
                       : testResults.directionSense >= 50 
                       ? "Some directional confusion" 
                       : "Significant directional difficulties"}
+                  </li>
+                )}
+                {checklistDetails && (
+                  <li>
+                    Symptom Checklist: {checklistDetails.score >= 70 
+                      ? "Few reported dyslexia symptoms" 
+                      : checklistDetails.score >= 50 
+                      ? "Some reported dyslexia symptoms" 
+                      : "Multiple reported dyslexia symptoms"}
+                  </li>
+                )}
+                {handwritingDetails && (
+                  <li>
+                    Handwriting Analysis: {handwritingDetails.overallScore >= 70 
+                      ? "Few dyslexic patterns in writing" 
+                      : handwritingDetails.overallScore >= 50 
+                      ? "Some dyslexic patterns in writing" 
+                      : "Significant dyslexic patterns in writing"}
                   </li>
                 )}
               </ul>
