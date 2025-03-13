@@ -18,6 +18,8 @@ interface SequenceItem {
   isCorrect?: boolean;
 }
 
+const MAX_TRIALS = 10; // Total number of trials for the test
+
 const WorkingMemoryTest = ({ onComplete }: WorkingMemoryTestProps) => {
   const [status, setStatus] = useState<TestStatus>("intro");
   const [level, setLevel] = useState(3); // Start with sequence of 3
@@ -119,8 +121,8 @@ const WorkingMemoryTest = ({ onComplete }: WorkingMemoryTestProps) => {
     setStatus("feedback");
     
     setTimeout(() => {
-      if (totalAttempts >= 9) {
-        // End test after 10 trials
+      if (totalAttempts >= MAX_TRIALS - 1) { // -1 because we already incremented totalAttempts
+        // End test after MAX_TRIALS
         finishTest();
       } else if (correct && level < 9) {
         // Increase difficulty if correct and not at max level
@@ -186,11 +188,36 @@ const WorkingMemoryTest = ({ onComplete }: WorkingMemoryTestProps) => {
             </p>
             <p className="mb-6">
               The test will adjust to your performance - getting more difficult if you're successful and easier if you make mistakes.
+              You'll complete {MAX_TRIALS} trials in total.
             </p>
             <Button onClick={handleStart} className="dyslexai-btn-primary">
               <Brain className="mr-2 h-5 w-5" />
               Start Test
             </Button>
+          </div>
+        )}
+        
+        {(status === "memorize" || status === "recall" || status === "feedback") && (
+          <div className="mb-4 flex justify-between items-center bg-gray-50 p-2 rounded-lg">
+            <div className="flex items-center">
+              <span className="text-sm font-medium mr-2">Trial:</span>
+              <span className="text-lg font-bold">{totalAttempts + 1}/{MAX_TRIALS}</span>
+            </div>
+            <div className="flex items-center">
+              <span className="text-sm font-medium mr-2">Level:</span>
+              <span className="bg-dyslexai-blue-100 text-dyslexai-blue-700 px-2 py-1 rounded-full text-sm font-bold">
+                {level}
+              </span>
+            </div>
+            <div className="flex items-center">
+              <span className="text-sm font-medium mr-2">Progress:</span>
+              <div className="w-24 bg-gray-200 rounded-full h-2">
+                <div 
+                  className="bg-dyslexai-blue-500 h-2 rounded-full" 
+                  style={{ width: `${(totalAttempts / MAX_TRIALS) * 100}%` }}
+                ></div>
+              </div>
+            </div>
           </div>
         )}
         
@@ -301,6 +328,7 @@ const WorkingMemoryTest = ({ onComplete }: WorkingMemoryTestProps) => {
                 <p className="text-xl mb-2">Your score: <span className="font-bold">{score}%</span></p>
                 <p className="text-lg mb-2">Highest level reached: <span className="font-bold">{level}</span></p>
                 <p className="text-lg mb-4">Accuracy: <span className="font-bold">{Math.round((correctAttempts / totalAttempts) * 100)}%</span></p>
+                <p className="text-lg mb-4">Questions completed: <span className="font-bold">{totalAttempts}/{MAX_TRIALS}</span></p>
                 
                 <div className="mt-4">
                   <p className="text-sm text-gray-600 mb-2">Working memory evaluation:</p>

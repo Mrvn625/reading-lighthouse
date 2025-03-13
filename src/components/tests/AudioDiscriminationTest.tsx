@@ -70,36 +70,87 @@ const AudioDiscriminationTest: React.FC<AudioDiscriminationTestProps> = ({ onCom
   };
 
   const playAudio = (index: number) => {
+    // Create audio context on first user interaction
+    if (!window.AudioContext && !window.webkitAudioContext) {
+      console.error("Web Audio API not supported in this browser");
+    }
+    
     if (!audioRef.current) {
-      // For testing purposes, we'll simulate audio since we don't have actual audio files
+      audioRef.current = new Audio();
+      
+      audioRef.current.onplay = () => {
+        setIsPlaying(true);
+        setPlayingIndex(index);
+      };
+      
+      audioRef.current.onended = () => {
+        setIsPlaying(false);
+        setPlayingIndex(null);
+      };
+      
+      audioRef.current.onerror = () => {
+        console.error("Error playing audio");
+        setIsPlaying(false);
+        setPlayingIndex(null);
+        
+        // Fall back to text-to-speech if audio file fails
+        useTTSFallback(index);
+      };
+    }
+    
+    try {
+      audioRef.current.src = audioQuestions[currentQuestionIndex].audioFiles[index];
+      audioRef.current.load();
+      const playPromise = audioRef.current.play();
+      
+      if (playPromise !== undefined) {
+        playPromise.catch(error => {
+          console.error("Audio play failed:", error);
+          // Fall back to text-to-speech
+          useTTSFallback(index);
+        });
+      }
+    } catch (error) {
+      console.error("Error setting up audio:", error);
+      useTTSFallback(index);
+    }
+  };
+  
+  const useTTSFallback = (index: number) => {
+    const sound = index === 0 ? 
+      audioQuestions[currentQuestionIndex].firstSound : 
+      audioQuestions[currentQuestionIndex].secondSound;
+      
+    // Use speech synthesis API as fallback
+    if (window.speechSynthesis) {
+      const utterance = new SpeechSynthesisUtterance(sound);
+      utterance.rate = 0.8; // Slightly slower for clarity
+      utterance.pitch = 1.2; // Slightly higher pitch for better phoneme distinction
+      
+      speechSynthesis.speak(utterance);
+      
       setIsPlaying(true);
       setPlayingIndex(index);
       
+      utterance.onend = () => {
+        setIsPlaying(false);
+        setPlayingIndex(null);
+      };
+    } else {
+      // If speech synthesis is not available, show toast
       toast({
         title: "Playing Sound",
-        description: index === 0 ? 
-          `Playing sound: ${audioQuestions[currentQuestionIndex].firstSound}` : 
-          `Playing sound: ${audioQuestions[currentQuestionIndex].secondSound}`,
+        description: `The sound is "${sound}"`,
       });
+      
+      setIsPlaying(true);
+      setPlayingIndex(index);
       
       setTimeout(() => {
         setIsPlaying(false);
         setPlayingIndex(null);
-      }, 2000);
-      
-      return;
+      }, 1000);
     }
-    
-    // If we had actual audio files, we would use this code
-    audioRef.current.src = audioQuestions[currentQuestionIndex].audioFiles[index];
-    audioRef.current.play();
-    setIsPlaying(true);
-    setPlayingIndex(index);
-    
-    audioRef.current.onended = () => {
-      setIsPlaying(false);
-      setPlayingIndex(null);
-    };
   };
 
   const handleAnswer = (answer: boolean) => {
@@ -171,14 +222,12 @@ const AudioDiscriminationTest: React.FC<AudioDiscriminationTestProps> = ({ onCom
   return (
     <Card>
       <CardContent className="p-6">
-        <audio ref={audioRef} className="hidden" />
-        
         <div className="mb-6">
           <h2 className="text-xl font-bold mb-2">
             Question {currentQuestionIndex + 1} of {audioQuestions.length}
           </h2>
           
-          <p className="mb-6">
+          <p className="mb-6 text-center">
             Listen to both sounds and decide if they are the same or different.
           </p>
           

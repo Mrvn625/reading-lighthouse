@@ -40,6 +40,12 @@ export interface HandwritingAnalysisResult {
     description: string;
   };
   recognizedText: string;
+  confidenceDetails?: {
+    letterFormation: number;
+    wordRecognition: number;
+    lineAlignment: number;
+    overallQuality: number;
+  };
   overallScore: number;
 }
 
@@ -59,4 +65,10 @@ export interface HandwritingFeatures {
 export interface OCRResult {
   text: string;
   confidence: number;
+  confidenceDetails?: {
+    letterFormation: number;
+    wordRecognition: number;
+    lineAlignment: number;
+    overallQuality: number;
+  };
 }

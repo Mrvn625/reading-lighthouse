@@ -4,7 +4,13 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
 import { Progress } from "@/components/ui/progress";
-import { Play, Pause, RotateCcw, Clock, ArrowRight } from "lucide-react";
+import { Play, Pause, RotateCcw, Clock, ArrowRight, HelpCircle, Info } from "lucide-react";
+import { 
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 type RANTestProps = {
   onComplete: (score: number) => void;
@@ -13,16 +19,19 @@ type RANTestProps = {
 type TestStatus = "intro" | "countdown" | "running" | "completed";
 
 const ITEMS_PER_ROW = 5;
-const ROWS = 4;
+const ROWS = 5;
 const TOTAL_ITEMS = ITEMS_PER_ROW * ROWS;
 
-// Test items - we use letters for this implementation
-const items = [
-  "a", "b", "c", "d", "o", 
-  "p", "q", "r", "s", "t", 
-  "e", "f", "g", "h", "i", 
-  "j", "k", "l", "m", "n"
-];
+// Different test item types
+type ItemType = "letters" | "numbers" | "colors" | "objects";
+
+// Define item sets
+const testItems = {
+  letters: ["a", "b", "d", "o", "p", "s", "r", "t", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "u", "v", "w", "x", "y", "z"],
+  numbers: ["1", "2", "3", "4", "5", "6", "7", "8", "9"],
+  colors: ["red", "blue", "green", "yellow", "black", "purple", "orange", "brown", "pink"],
+  objects: ["🍎", "🚗", "🏠", "🐱", "🔑", "📱", "⭐", "🌈", "🎁", "🚲", "✏️", "📚", "⚽", "👟", "🌵"]
+};
 
 // Benchmark times in seconds
 const EXCELLENT_TIME = 20;
@@ -38,9 +47,29 @@ const RANTest = ({ onComplete }: RANTestProps) => {
   const [isRunning, setIsRunning] = useState(false);
   const [namedCount, setNamedCount] = useState(0);
   const [score, setScore] = useState(0);
+  const [itemType, setItemType] = useState<ItemType>("letters");
+  const [testItems, setTestItems] = useState<string[]>([]);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const startTimeRef = useRef<number>(0);
   const { toast } = useToast();
+  
+  // Generate test items when item type changes
+  useEffect(() => {
+    generateTestItems(itemType);
+  }, [itemType]);
+  
+  // Generate a random set of test items
+  const generateTestItems = (type: ItemType) => {
+    const sourceItems = testItems[type];
+    const items: string[] = [];
+    
+    for (let i = 0; i < TOTAL_ITEMS; i++) {
+      const randomIndex = Math.floor(Math.random() * sourceItems.length);
+      items.push(sourceItems[randomIndex]);
+    }
+    
+    setTestItems(items);
+  };
   
   // Handle countdown before starting the test
   useEffect(() => {
@@ -74,12 +103,20 @@ const RANTest = ({ onComplete }: RANTestProps) => {
     };
   }, [isRunning]);
 
+  const handleItemTypeChange = (type: ItemType) => {
+    setItemType(type);
+    toast({
+      title: `Selected ${type} test`,
+      description: `You'll be naming ${type} as quickly as you can.`,
+    });
+  };
+  
   const startCountdown = () => {
     setStatus("countdown");
     setCountdown(3);
     toast({
       title: "Get Ready!",
-      description: "Name each letter as quickly as you can.",
+      description: `Name each ${itemType === "letters" ? "letter" : itemType === "numbers" ? "number" : itemType === "colors" ? "color" : "object"} as quickly as you can.`,
     });
   };
   
@@ -135,6 +172,11 @@ const RANTest = ({ onComplete }: RANTestProps) => {
       calculatedScore = Math.max(30, 50 - (elapsedTime - BELOW_AVERAGE_TIME) / 5);
     }
     
+    // Adjust score based on item type (letters being the standard)
+    if (itemType === "numbers") calculatedScore *= 0.95; // Numbers are easier to name
+    if (itemType === "colors") calculatedScore *= 1.05; // Colors require more processing
+    if (itemType === "objects") calculatedScore *= 1.1; // Objects require most processing
+    
     // Ensure score is between 0 and 100 and rounded to nearest integer
     const finalScore = Math.min(100, Math.max(0, Math.round(calculatedScore)));
     setScore(finalScore);
@@ -157,10 +199,96 @@ const RANTest = ({ onComplete }: RANTestProps) => {
     return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}.${hundredths.toString().padStart(2, '0')}`;
   };
 
+  // Render item based on type
+  const renderItem = (item: string, index: number) => {
+    const isNamed = index < namedCount;
+    
+    // For colors, use colored boxes
+    if (itemType === "colors") {
+      const colorMap: {[key: string]: string} = {
+        red: "bg-red-500",
+        blue: "bg-blue-500",
+        green: "bg-green-500",
+        yellow: "bg-yellow-400",
+        black: "bg-black",
+        purple: "bg-purple-500",
+        orange: "bg-orange-500",
+        brown: "bg-amber-800",
+        pink: "bg-pink-500"
+      };
+      
+      return (
+        <Button
+          key={index}
+          variant={isNamed ? "ghost" : "outline"}
+          className={`h-16 flex items-center justify-center ${
+            isNamed 
+              ? "bg-gray-100 text-gray-400" 
+              : `${colorMap[item]} text-white hover:opacity-90`
+          }`}
+          disabled={!isRunning || isNamed || index !== namedCount}
+          onClick={handleItemNamed}
+        >
+          {item}
+        </Button>
+      );
+    }
+    
+    // For objects (emojis), make them larger
+    if (itemType === "objects") {
+      return (
+        <Button
+          key={index}
+          variant={isNamed ? "ghost" : "outline"}
+          className={`h-16 text-2xl font-normal ${
+            isNamed 
+              ? "bg-gray-100 text-gray-400" 
+              : "bg-white hover:bg-dyslexai-blue-50"
+          }`}
+          disabled={!isRunning || isNamed || index !== namedCount}
+          onClick={handleItemNamed}
+        >
+          {item}
+        </Button>
+      );
+    }
+    
+    // Default rendering for letters and numbers
+    return (
+      <Button
+        key={index}
+        variant={isNamed ? "ghost" : "outline"}
+        className={`h-16 text-2xl font-bold ${
+          isNamed 
+            ? "bg-gray-100 text-gray-400" 
+            : "bg-white hover:bg-dyslexai-blue-50"
+        }`}
+        disabled={!isRunning || isNamed || index !== namedCount}
+        onClick={handleItemNamed}
+      >
+        {item}
+      </Button>
+    );
+  };
+
   return (
     <Card className="w-full max-w-4xl mx-auto">
       <CardHeader>
-        <CardTitle className="text-xl text-dyslexai-blue-700">Rapid Automatized Naming (RAN) Test</CardTitle>
+        <CardTitle className="text-xl text-dyslexai-blue-700">
+          Rapid Automatized Naming (RAN) Test
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button variant="ghost" size="icon" className="h-6 w-6 ml-2">
+                  <HelpCircle className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent className="max-w-xs">
+                <p>This test measures naming speed, a key predictor of reading fluency and dyslexia. People with dyslexia often name items more slowly due to phonological processing challenges.</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        </CardTitle>
         <CardDescription>
           Measure how quickly you can name familiar visual items
         </CardDescription>
@@ -171,11 +299,51 @@ const RANTest = ({ onComplete }: RANTestProps) => {
           <div className="text-center p-8">
             <h3 className="text-lg font-bold mb-4">Instructions</h3>
             <p className="mb-6">
-              In this test, you'll be shown a grid of letters. Name each letter out loud as quickly as possible, going from left to right, row by row.
+              In this test, you'll be shown a grid of items. Name each item out loud as quickly as possible, going from left to right, row by row.
             </p>
             <p className="mb-6">
-              Click the "Start" button when you're ready, and then click each letter as you say it out loud. Try to go as quickly as you can while still being accurate.
+              Click the "Start" button when you're ready, and then click each item as you say it out loud. Try to go as quickly as you can while still being accurate.
             </p>
+            
+            <div className="bg-dyslexai-blue-50 p-4 rounded-lg mb-6">
+              <h4 className="font-bold text-dyslexai-blue-700 mb-2 flex items-center">
+                <Info className="h-4 w-4 mr-1" /> Select Test Type
+              </h4>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mb-4">
+                <Button 
+                  variant={itemType === "letters" ? "default" : "outline"}
+                  onClick={() => handleItemTypeChange("letters")}
+                  className={itemType === "letters" ? "bg-dyslexai-blue-500" : ""}
+                >
+                  Letters
+                </Button>
+                <Button 
+                  variant={itemType === "numbers" ? "default" : "outline"}
+                  onClick={() => handleItemTypeChange("numbers")}
+                  className={itemType === "numbers" ? "bg-dyslexai-blue-500" : ""}
+                >
+                  Numbers
+                </Button>
+                <Button 
+                  variant={itemType === "colors" ? "default" : "outline"}
+                  onClick={() => handleItemTypeChange("colors")}
+                  className={itemType === "colors" ? "bg-dyslexai-blue-500" : ""}
+                >
+                  Colors
+                </Button>
+                <Button 
+                  variant={itemType === "objects" ? "default" : "outline"}
+                  onClick={() => handleItemTypeChange("objects")}
+                  className={itemType === "objects" ? "bg-dyslexai-blue-500" : ""}
+                >
+                  Objects
+                </Button>
+              </div>
+              <p className="text-sm text-dyslexai-blue-700">
+                Different item types test different aspects of naming speed. Letters are most strongly linked to reading ability.
+              </p>
+            </div>
+            
             <Button onClick={startCountdown} className="dyslexai-btn-primary">
               <Play className="mr-2 h-5 w-5" />
               Start Test
@@ -224,25 +392,7 @@ const RANTest = ({ onComplete }: RANTestProps) => {
             </div>
             
             <div className="grid grid-cols-5 gap-3 mt-6">
-              {items.map((item, index) => {
-                const isNamed = index < namedCount;
-                
-                return (
-                  <Button
-                    key={index}
-                    variant={isNamed ? "ghost" : "outline"}
-                    className={`h-16 text-2xl font-bold ${
-                      isNamed 
-                        ? "bg-gray-100 text-gray-400" 
-                        : "bg-white hover:bg-dyslexai-blue-50"
-                    }`}
-                    disabled={!isRunning || isNamed || index !== namedCount}
-                    onClick={handleItemNamed}
-                  >
-                    {item}
-                  </Button>
-                );
-              })}
+              {testItems.map((item, index) => renderItem(item, index))}
             </div>
           </div>
         )}
@@ -255,6 +405,7 @@ const RANTest = ({ onComplete }: RANTestProps) => {
               <div className="bg-dyslexai-blue-50 rounded-lg p-4 mb-4">
                 <p className="text-lg">Your time: <span className="font-bold">{formatTime(elapsedTime)}</span></p>
                 <p className="text-xl mb-2">Your score: <span className="font-bold">{score}%</span></p>
+                <p className="text-sm text-gray-600 mb-2">Test type: <span className="font-medium capitalize">{itemType}</span></p>
                 
                 <div className="mt-4">
                   <p className="text-sm text-gray-600 mb-2">Performance evaluation:</p>

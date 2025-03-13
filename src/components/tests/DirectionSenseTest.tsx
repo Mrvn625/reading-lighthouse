@@ -1,14 +1,16 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { ArrowRight, ArrowLeft, ArrowUp, ArrowDown } from "lucide-react";
+import { ArrowRight, ArrowLeft, ArrowUp, ArrowDown, CheckCircle2, XCircle } from "lucide-react";
+import { Progress } from "@/components/ui/progress";
 
 interface DirectionQuestion {
   id: number;
   instruction: string;
   correctAnswer: "left" | "right" | "up" | "down";
   options: Array<"left" | "right" | "up" | "down">;
+  explanation?: string;
 }
 
 const directionQuestions: DirectionQuestion[] = [
@@ -16,31 +18,50 @@ const directionQuestions: DirectionQuestion[] = [
     id: 1,
     instruction: "Which arrow points to the RIGHT?",
     correctAnswer: "right",
-    options: ["left", "right", "up", "down"]
+    options: ["left", "right", "up", "down"],
+    explanation: "The right arrow points to the right side of the screen."
   },
   {
     id: 2,
     instruction: "Which arrow points to the LEFT?",
     correctAnswer: "left",
-    options: ["left", "right", "up", "down"]
+    options: ["left", "right", "up", "down"],
+    explanation: "The left arrow points to the left side of the screen."
   },
   {
     id: 3,
     instruction: "Which arrow points UP?",
     correctAnswer: "up",
-    options: ["left", "right", "up", "down"]
+    options: ["left", "right", "up", "down"],
+    explanation: "The up arrow points to the top of the screen."
   },
   {
     id: 4,
     instruction: "Which arrow points DOWN?",
     correctAnswer: "down",
-    options: ["left", "right", "up", "down"]
+    options: ["left", "right", "up", "down"],
+    explanation: "The down arrow points to the bottom of the screen."
   },
   {
     id: 5,
     instruction: "If you're facing north and turn right, which direction are you facing?",
     correctAnswer: "right",
-    options: ["left", "right", "up", "down"]
+    options: ["left", "right", "up", "down"],
+    explanation: "When facing north, turning right would have you facing east (to the right on most maps)."
+  },
+  {
+    id: 6,
+    instruction: "If you're reading a book in English, in which direction do your eyes move?",
+    correctAnswer: "right",
+    options: ["left", "right", "up", "down"],
+    explanation: "When reading English text, your eyes move from left to right across each line."
+  },
+  {
+    id: 7,
+    instruction: "If you want to go back to the previous page in a book, which way do you turn the pages?",
+    correctAnswer: "left",
+    options: ["left", "right", "up", "down"],
+    explanation: "To go back to a previous page, you turn the pages to the left."
   }
 ];
 
@@ -52,20 +73,34 @@ const DirectionSenseTest: React.FC<DirectionSenseTestProps> = ({ onComplete }) =
   const [showIntro, setShowIntro] = useState(true);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [answers, setAnswers] = useState<string[]>([]);
+  const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
+  const [showFeedback, setShowFeedback] = useState(false);
+  const [isCorrect, setIsCorrect] = useState(false);
 
   const handleStartTest = () => {
     setShowIntro(false);
   };
 
   const handleAnswer = (answer: "left" | "right" | "up" | "down") => {
-    const newAnswers = [...answers, answer];
-    setAnswers(newAnswers);
+    setSelectedAnswer(answer);
+    const currentQuestion = directionQuestions[currentQuestionIndex];
+    const correct = answer === currentQuestion.correctAnswer;
+    setIsCorrect(correct);
+    setShowFeedback(true);
     
-    if (currentQuestionIndex < directionQuestions.length - 1) {
-      setCurrentQuestionIndex(currentQuestionIndex + 1);
-    } else {
-      calculateScore(newAnswers);
-    }
+    // Wait for feedback, then move to the next question
+    setTimeout(() => {
+      const newAnswers = [...answers, answer];
+      setAnswers(newAnswers);
+      
+      if (currentQuestionIndex < directionQuestions.length - 1) {
+        setCurrentQuestionIndex(currentQuestionIndex + 1);
+        setSelectedAnswer(null);
+        setShowFeedback(false);
+      } else {
+        calculateScore(newAnswers);
+      }
+    }, 1500);
   };
 
   const calculateScore = (finalAnswers: string[]) => {
@@ -135,32 +170,72 @@ const DirectionSenseTest: React.FC<DirectionSenseTestProps> = ({ onComplete }) =
   }
 
   const currentQuestion = directionQuestions[currentQuestionIndex];
+  const progress = ((currentQuestionIndex) / directionQuestions.length) * 100;
 
   return (
     <Card>
       <CardContent className="p-6">
         <div className="mb-6">
-          <h2 className="text-xl font-bold mb-2">
-            Question {currentQuestionIndex + 1} of {directionQuestions.length}
-          </h2>
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-xl font-bold">
+              Question {currentQuestionIndex + 1} of {directionQuestions.length}
+            </h2>
+            <span className="text-sm text-gray-500">
+              {Math.round(progress)}% complete
+            </span>
+          </div>
+          
+          <Progress value={progress} className="mb-4" />
           
           <p className="text-lg mb-8 text-center font-medium">
             {currentQuestion.instruction}
           </p>
           
           <div className="grid grid-cols-2 gap-4">
-            {currentQuestion.options.map((option) => (
-              <Button
-                key={option}
-                onClick={() => handleAnswer(option)}
-                className="h-32 text-lg flex flex-col items-center justify-center"
-                variant="outline"
-              >
-                {getArrowIcon(option)}
-                <span className="mt-2 capitalize">{option}</span>
-              </Button>
-            ))}
+            {currentQuestion.options.map((option) => {
+              // Determine button style based on selection and feedback state
+              let buttonVariant: "outline" | "default" | "secondary" = "outline";
+              let buttonClass = "h-32 text-lg flex flex-col items-center justify-center";
+              
+              if (showFeedback && selectedAnswer === option) {
+                buttonClass += isCorrect ? " border-green-500 bg-green-50" : " border-red-500 bg-red-50";
+              }
+              
+              return (
+                <Button
+                  key={option}
+                  onClick={() => !showFeedback && handleAnswer(option)}
+                  className={buttonClass}
+                  variant={buttonVariant}
+                  disabled={showFeedback}
+                >
+                  {getArrowIcon(option)}
+                  <span className="mt-2 capitalize">{option}</span>
+                  
+                  {/* Show feedback indicators */}
+                  {showFeedback && selectedAnswer === option && (
+                    <span className="absolute top-2 right-2">
+                      {isCorrect ? (
+                        <CheckCircle2 className="h-6 w-6 text-green-500" />
+                      ) : (
+                        <XCircle className="h-6 w-6 text-red-500" />
+                      )}
+                    </span>
+                  )}
+                </Button>
+              );
+            })}
           </div>
+          
+          {/* Feedback explanation */}
+          {showFeedback && (
+            <div className={`mt-4 p-3 rounded-lg ${isCorrect ? 'bg-green-50 border border-green-200' : 'bg-red-50 border border-red-200'}`}>
+              <p className={`${isCorrect ? 'text-green-700' : 'text-red-700'}`}>
+                {isCorrect ? 'Correct! ' : 'Incorrect. '}
+                {currentQuestion.explanation}
+              </p>
+            </div>
+          )}
         </div>
       </CardContent>
     </Card>
