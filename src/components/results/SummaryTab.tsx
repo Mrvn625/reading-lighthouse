@@ -1,9 +1,6 @@
 
-import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { useToast } from "@/components/ui/use-toast";
-import { Link } from "react-router-dom";
 import ResultBar from "./ResultBar";
 
 interface SummaryTabProps {
@@ -13,6 +10,7 @@ interface SummaryTabProps {
   checklistResults: any;
   calculateAverageScore: () => number;
   getRecommendations: () => string[];
+  onViewFullReport: () => void;
 }
 
 const SummaryTab = ({ 
@@ -21,10 +19,9 @@ const SummaryTab = ({
   handwritingResults, 
   checklistResults,
   calculateAverageScore,
-  getRecommendations
+  getRecommendations,
+  onViewFullReport
 }: SummaryTabProps) => {
-  const { toast } = useToast();
-
   return (
     <Card>
       <CardContent className="p-6">
@@ -159,10 +156,7 @@ const SummaryTab = ({
           </ul>
           
           <div className="mt-6 flex justify-center">
-            <Button className="dyslexai-btn-primary" onClick={() => toast({
-              title: "Resources Available",
-              description: "Check your full report for detailed recommendations",
-            })}>
+            <Button className="dyslexai-btn-primary" onClick={onViewFullReport}>
               View Full Report
             </Button>
           </div>

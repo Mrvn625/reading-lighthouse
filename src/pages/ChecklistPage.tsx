@@ -1,78 +1,185 @@
 
-import { useState } from "react";
-import { Link } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import PageLayout from "@/components/layout/PageLayout";
 import PageHeader from "@/components/ui/page-header";
 import Section from "@/components/ui/section";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { CheckSquare, ArrowRight, Check } from "lucide-react";
+import { CheckSquare, ArrowRight, Check, BrainCircuit } from "lucide-react";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
 import { useToast } from "@/components/ui/use-toast";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
-// Define question categories and questions
-const questionGroups = [
-  {
-    id: "reading",
-    title: "Reading",
-    questions: [
-      { id: "q1", text: "Has difficulty sounding out unfamiliar words" },
-      { id: "q2", text: "Reads slowly, with many pauses and corrections" },
-      { id: "q3", text: "Often loses place while reading or skips lines" },
-      { id: "q4", text: "Struggles to comprehend what they've read" },
-      { id: "q5", text: "Avoids reading aloud or for leisure" }
-    ]
-  },
-  {
-    id: "writing",
-    title: "Writing",
-    questions: [
-      { id: "q6", text: "Has messy handwriting with inconsistent letter formation" },
-      { id: "q7", text: "Makes persistent spelling errors, even with common words" },
-      { id: "q8", text: "Reverses letters (b/d, p/q) or transposes letters in words" },
-      { id: "q9", text: "Has difficulty organizing written work" },
-      { id: "q10", text: "Takes much longer than peers to complete writing tasks" }
-    ]
-  },
-  {
-    id: "language",
-    title: "Language Processing",
-    questions: [
-      { id: "q11", text: "Struggles to find the right word when speaking" },
-      { id: "q12", text: "Has difficulty with rhyming or breaking words into syllables" },
-      { id: "q13", text: "Mispronounces words or confuses similar-sounding words" },
-      { id: "q14", text: "Has trouble following multi-step verbal instructions" },
-      { id: "q15", text: "Struggles to learn and recall the alphabet, days of week, or months" }
-    ]
-  },
-  {
-    id: "cognitive",
-    title: "Cognitive Skills",
-    questions: [
-      { id: "q16", text: "Has trouble with sequencing (e.g., alphabet, months, numbers)" },
-      { id: "q17", text: "Struggles with time management and organization" },
-      { id: "q18", text: "Has poor working memory (e.g., remembering lists or instructions)" },
-      { id: "q19", text: "Takes longer to process and respond to questions" },
-      { id: "q20", text: "Exhibits strengths in creative, spatial, or hands-on tasks" }
-    ]
-  }
-];
+// Define age group options
+const AGE_GROUPS = {
+  preschool: "Preschool (Ages 3-5)",
+  schoolAge: "School Age (Ages 6-17)",
+  adult: "Adult (Ages 18+)"
+};
 
-const totalQuestions = questionGroups.reduce(
-  (acc, group) => acc + group.questions.length,
-  0
-);
+// Define question categories and questions by age group
+const questionGroupsByAgeCategory = {
+  preschool: [
+    {
+      id: "language",
+      title: "Language Development",
+      questions: [
+        { id: "p1", text: "Delay in speaking or difficulties pronouncing words" },
+        { id: "p2", text: "Difficulty learning and remembering the names of letters" },
+        { id: "p3", text: "Difficulty learning nursery rhymes or playing rhyming games" },
+        { id: "p4", text: "Difficulty recognizing rhyming patterns" },
+        { id: "p5", text: "Struggles to identify beginning sounds in words" }
+      ]
+    },
+    {
+      id: "development",
+      title: "Early Development",
+      questions: [
+        { id: "p6", text: "Difficulty learning colors, shapes, and numbers" },
+        { id: "p7", text: "Struggles to follow multi-step directions" },
+        { id: "p8", text: "Family history of reading difficulties" },
+        { id: "p9", text: "Avoids activities involving letters and words" },
+        { id: "p10", text: "Unable to recognize or write their own name" }
+      ]
+    }
+  ],
+  schoolAge: [
+    {
+      id: "reading",
+      title: "Reading",
+      questions: [
+        { id: "s1", text: "Has difficulty sounding out unfamiliar words" },
+        { id: "s2", text: "Reads slowly, with many pauses and corrections" },
+        { id: "s3", text: "Often loses place while reading or skips lines" },
+        { id: "s4", text: "Struggles to comprehend what they've read" },
+        { id: "s5", text: "Avoids reading aloud or for leisure" }
+      ]
+    },
+    {
+      id: "writing",
+      title: "Writing",
+      questions: [
+        { id: "s6", text: "Has messy handwriting with inconsistent letter formation" },
+        { id: "s7", text: "Makes persistent spelling errors, even with common words" },
+        { id: "s8", text: "Reverses letters (b/d, p/q) or transposes letters in words" },
+        { id: "s9", text: "Has difficulty organizing written work" },
+        { id: "s10", text: "Takes much longer than peers to complete writing tasks" }
+      ]
+    },
+    {
+      id: "language",
+      title: "Language Processing",
+      questions: [
+        { id: "s11", text: "Struggles to find the right word when speaking" },
+        { id: "s12", text: "Has difficulty with rhyming or breaking words into syllables" },
+        { id: "s13", text: "Mispronounces words or confuses similar-sounding words" },
+        { id: "s14", text: "Has trouble following multi-step verbal instructions" },
+        { id: "s15", text: "Struggles to learn and recall the alphabet, days of week, or months" }
+      ]
+    },
+    {
+      id: "cognitive",
+      title: "Cognitive Skills",
+      questions: [
+        { id: "s16", text: "Has trouble with sequencing (e.g., alphabet, months, numbers)" },
+        { id: "s17", text: "Struggles with time management and organization" },
+        { id: "s18", text: "Has poor working memory (e.g., remembering lists or instructions)" },
+        { id: "s19", text: "Takes longer to process and respond to questions" },
+        { id: "s20", text: "Exhibits strengths in creative, spatial, or hands-on tasks" }
+      ]
+    }
+  ],
+  adult: [
+    {
+      id: "reading",
+      title: "Reading",
+      questions: [
+        { id: "a1", text: "Reads slowly with frequent word recognition errors" },
+        { id: "a2", text: "Avoids reading aloud or struggles when required to" },
+        { id: "a3", text: "Finds reading for extended periods tiring or stressful" },
+        { id: "a4", text: "Has difficulty understanding jokes, puns, or idioms" },
+        { id: "a5", text: "Prefers audio books or visual information over reading" }
+      ]
+    },
+    {
+      id: "writing",
+      title: "Writing and Spelling",
+      questions: [
+        { id: "a6", text: "Has persistent spelling difficulties despite spell-check tools" },
+        { id: "a7", text: "Avoids writing tasks or takes unusually long to complete them" },
+        { id: "a8", text: "Has inconsistent or poorly formed handwriting" },
+        { id: "a9", text: "Struggles to express ideas clearly in writing" },
+        { id: "a10", text: "Makes grammar and punctuation errors more frequently than peers" }
+      ]
+    },
+    {
+      id: "workLife",
+      title: "Work and Daily Life",
+      questions: [
+        { id: "a11", text: "Has difficulty with time management and organization" },
+        { id: "a12", text: "Struggles with note-taking in meetings or lectures" },
+        { id: "a13", text: "Has trouble remembering sequences or following detailed instructions" },
+        { id: "a14", text: "Finds it hard to recall names, dates, or phone numbers" },
+        { id: "a15", text: "Experiences mental fatigue when processing text-heavy information" }
+      ]
+    },
+    {
+      id: "strengths",
+      title: "Strengths and Coping",
+      questions: [
+        { id: "a16", text: "Shows strengths in problem-solving, creativity, or big-picture thinking" },
+        { id: "a17", text: "Has developed systems to compensate for reading/writing challenges" },
+        { id: "a18", text: "Performs better in jobs requiring visual-spatial skills or creativity" },
+        { id: "a19", text: "Prefers to demonstrate knowledge through discussion rather than writing" },
+        { id: "a20", text: "Has strong verbal communication or storytelling abilities" }
+      ]
+    }
+  ]
+};
+
+const getQuestionGroups = (ageGroup) => {
+  return questionGroupsByAgeCategory[ageGroup] || questionGroupsByAgeCategory.schoolAge;
+};
+
+const getTotalQuestions = (groups) => {
+  return groups.reduce((acc, group) => acc + group.questions.length, 0);
+};
 
 const ChecklistPage = () => {
+  const [ageGroup, setAgeGroup] = useState("schoolAge");
+  const [questionGroups, setQuestionGroups] = useState(getQuestionGroups("schoolAge"));
   const [currentGroupIndex, setCurrentGroupIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<string, number>>({});
   const [isSubmitted, setIsSubmitted] = useState(false);
   const { toast } = useToast();
+  const navigate = useNavigate();
+
+  // Check if user has a profile
+  useEffect(() => {
+    const userData = localStorage.getItem("user");
+    if (!userData) {
+      toast({
+        title: "Profile required",
+        description: "Please complete your profile before taking the assessment",
+      });
+      navigate("/profile");
+    }
+  }, [navigate, toast]);
+
+  useEffect(() => {
+    // Update question groups when age group changes
+    setQuestionGroups(getQuestionGroups(ageGroup));
+    setCurrentGroupIndex(0);
+    setAnswers({});
+    setIsSubmitted(false);
+  }, [ageGroup]);
 
   const currentGroup = questionGroups[currentGroupIndex];
   
+  const totalQuestions = getTotalQuestions(questionGroups);
   const answeredQuestions = Object.keys(answers).length;
   const progress = Math.round((answeredQuestions / totalQuestions) * 100);
 
@@ -112,6 +219,17 @@ const ChecklistPage = () => {
   };
 
   const submitAssessment = () => {
+    const scores = calculateScores();
+    const checklistResults = {
+      date: new Date().toISOString(),
+      score: scores.overall,
+      ageGroup: ageGroup,
+      categoryScores: scores
+    };
+    
+    // Save to localStorage
+    localStorage.setItem("checklistResults", JSON.stringify(checklistResults));
+    
     toast({
       title: "Assessment submitted",
       description: "Your checklist responses have been analyzed.",
@@ -155,6 +273,23 @@ const ChecklistPage = () => {
           {!isSubmitted ? (
             <>
               <Section>
+                <div className="mb-4">
+                  <Label htmlFor="ageGroup" className="block text-sm font-medium mb-2">Select Age Group</Label>
+                  <Select
+                    value={ageGroup}
+                    onValueChange={(value) => setAgeGroup(value)}
+                  >
+                    <SelectTrigger className="w-full sm:w-auto">
+                      <SelectValue placeholder="Select age group" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="preschool">{AGE_GROUPS.preschool}</SelectItem>
+                      <SelectItem value="schoolAge">{AGE_GROUPS.schoolAge}</SelectItem>
+                      <SelectItem value="adult">{AGE_GROUPS.adult}</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
                 <div className="mb-6">
                   <div className="flex justify-between items-center mb-2">
                     <span className="text-sm font-medium text-gray-500">
@@ -222,19 +357,13 @@ const ChecklistPage = () => {
               </Section>
 
               <Section title="About This Assessment">
-                <p>
-                  This checklist is designed to identify behavioral and learning patterns often associated with dyslexia. Rate each item based on how frequently you (or the person you're assessing) experience these traits.
+                <p className="mb-4">
+                  This checklist is designed for <strong>{AGE_GROUPS[ageGroup]}</strong> to identify behavioral and learning patterns often associated with dyslexia. Rate each item based on how frequently you (or the person you're assessing) experience these traits.
                 </p>
                 <p>
-                  This assessment covers four key areas:
+                  This assessment is based on guidelines from the International Dyslexia Association and covers key areas relevant to this age group.
                 </p>
-                <ul className="list-disc pl-5 space-y-2 mb-4">
-                  <li><strong>Reading:</strong> Fluency, accuracy, and comprehension</li>
-                  <li><strong>Writing:</strong> Spelling, handwriting, and written expression</li>
-                  <li><strong>Language Processing:</strong> Phonological awareness and verbal skills</li>
-                  <li><strong>Cognitive Skills:</strong> Memory, processing speed, and organization</li>
-                </ul>
-                <p className="text-gray-600 italic">
+                <p className="text-gray-600 italic mt-4">
                   Note: This checklist provides indications only and should not be considered a formal diagnosis. Many of these traits can be related to other learning differences or developmental factors.
                 </p>
               </Section>
@@ -283,6 +412,19 @@ const ChecklistPage = () => {
                             </div>
                           </div>
                         ))}
+                      </div>
+
+                      <div className="mt-6 p-4 bg-gray-50 rounded-lg">
+                        <h4 className="font-bold mb-2">How Scores Are Calculated</h4>
+                        <p className="text-sm text-gray-600 mb-2">
+                          Each question is scored from 0-3 (Never=0, Sometimes=1, Often=2, Very Often=3).
+                        </p>
+                        <p className="text-sm text-gray-600 mb-2">
+                          Category scores = (Sum of question scores) ÷ (Max possible score) × 100
+                        </p>
+                        <p className="text-sm text-gray-600">
+                          Overall score = (Total points across all questions) ÷ (Max possible points) × 100
+                        </p>
                       </div>
 
                       <div className="mt-8 p-4 bg-dyslexai-blue-50 rounded-lg">
@@ -361,7 +503,5 @@ const ResultInterpretation = ({ score }: ResultInterpretationProps) => {
     </div>
   );
 };
-
-import { BrainCircuit } from "lucide-react";
 
 export default ChecklistPage;

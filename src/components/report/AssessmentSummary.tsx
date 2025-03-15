@@ -25,6 +25,16 @@ const AssessmentSummary = ({
   checklistDetails, 
   handwritingDetails 
 }: AssessmentSummaryProps) => {
+  // Get age group display name
+  const getAgeGroupDisplay = (ageGroup) => {
+    const ageGroups = {
+      preschool: "Preschool (Ages 3-5)",
+      schoolAge: "School Age (Ages 6-17)",
+      adult: "Adult (Ages 18+)"
+    };
+    return ageGroups[ageGroup] || "School Age";
+  };
+
   return (
     <Card className="mb-6">
       <CardHeader className="pb-2">
@@ -93,11 +103,11 @@ const AssessmentSummary = ({
             )}
             {checklistDetails && (
               <li>
-                Symptom Checklist: {checklistDetails.score >= 70 
-                  ? "Few reported dyslexia symptoms" 
+                Symptom Checklist ({getAgeGroupDisplay(checklistDetails.ageGroup)}): {checklistDetails.score >= 70 
+                  ? "Multiple reported dyslexia symptoms" 
                   : checklistDetails.score >= 50 
                   ? "Some reported dyslexia symptoms" 
-                  : "Multiple reported dyslexia symptoms"}
+                  : "Few reported dyslexia symptoms"}
               </li>
             )}
             {handwritingDetails && (

@@ -1,5 +1,6 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import PageLayout from "@/components/layout/PageLayout";
 import PageHeader from "@/components/ui/page-header";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -11,6 +12,10 @@ import ChartsTab from "@/components/results/ChartsTab";
 import { useResultsData } from "@/components/results/useResultsData";
 
 const ResultsPage = () => {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const initialTab = searchParams.get("tab") || "summary";
+  const [activeTab, setActiveTab] = useState(initialTab);
+
   const {
     testResults,
     userData,
@@ -22,6 +27,20 @@ const ResultsPage = () => {
     generateChartData,
     getMostRecentTestDate
   } = useResultsData();
+
+  // Update URL when tab changes
+  const handleTabChange = (value) => {
+    setActiveTab(value);
+    setSearchParams({ tab: value });
+  };
+
+  useEffect(() => {
+    // If URL param changes externally, update the active tab
+    const tabParam = searchParams.get("tab");
+    if (tabParam && tabParam !== activeTab) {
+      setActiveTab(tabParam);
+    }
+  }, [searchParams, activeTab]);
 
   return (
     <PageLayout>
@@ -36,7 +55,7 @@ const ResultsPage = () => {
           {Object.keys(testResults).length === 0 && !handwritingResults && !checklistResults ? (
             <EmptyResultsCard />
           ) : (
-            <Tabs defaultValue="summary" className="w-full">
+            <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
               <TabsList className="grid grid-cols-3 w-full mb-8">
                 <TabsTrigger value="summary">
                   <BarChart className="mr-2 h-4 w-4" />
@@ -60,6 +79,7 @@ const ResultsPage = () => {
                   checklistResults={checklistResults}
                   calculateAverageScore={calculateAverageScore}
                   getRecommendations={getRecommendations}
+                  onViewFullReport={() => handleTabChange("report")}
                 />
               </TabsContent>
               
