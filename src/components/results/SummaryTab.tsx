@@ -70,6 +70,7 @@ const SummaryTab = ({
           </div>
           
           <div className="space-y-6">
+            {/* Test results */}
             {testResults.phonological !== undefined && (
               <ResultBar 
                 title="Phonological Awareness" 
@@ -171,7 +172,9 @@ const SummaryTab = ({
                             <span className="text-xs text-gray-600">
                               {key.charAt(0).toUpperCase() + key.slice(1).replace(/_/g, ' ')}:
                             </span>
-                            <span className="text-xs font-medium">{value}%</span>
+                            <span className="text-xs font-medium">
+                              {typeof value === 'number' ? `${value}%` : String(value)}
+                            </span>
                           </div>
                         ))}
                     </div>

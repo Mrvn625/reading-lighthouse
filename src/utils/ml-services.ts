@@ -1,4 +1,3 @@
-
 // This file contains implementations of machine learning services
 // In a production environment, these would connect to real ML models
 
@@ -55,10 +54,8 @@ export const performOCR = async (imageDataUrl: string): Promise<OCRResult> => {
     const seededRandom = seedRandom(randomSeed);
     
     // Generate confidence values between 0.65 and 0.98 for different aspects
-    const letterFormationConfidence = 0.65 + (seededRandom() * 0.30);
     const wordRecognitionConfidence = 0.70 + (seededRandom() * 0.25);
-    const lineAlignmentConfidence = 0.75 + (seededRandom() * 0.20);
-    const overallQualityConfidence = (letterFormationConfidence + wordRecognitionConfidence + lineAlignmentConfidence) / 3;
+    const overallQualityConfidence = wordRecognitionConfidence; // Simplified for now
     
     // We would normally analyze the actual image to extract text
     // For the demo, we'll simulate OCR by pretending to read text from the image
@@ -75,9 +72,7 @@ export const performOCR = async (imageDataUrl: string): Promise<OCRResult> => {
       text: simulatedOcrResult,
       confidence: overallQualityConfidence,
       confidenceDetails: {
-        letterFormation: letterFormationConfidence,
         wordRecognition: wordRecognitionConfidence,
-        lineAlignment: lineAlignmentConfidence,
         overallQuality: overallQualityConfidence
       }
     };
@@ -87,9 +82,7 @@ export const performOCR = async (imageDataUrl: string): Promise<OCRResult> => {
       text: "Error analyzing image. Please try again with a clearer image.",
       confidence: 0.4,
       confidenceDetails: {
-        letterFormation: 0.4,
         wordRecognition: 0.4,
-        lineAlignment: 0.4,
         overallQuality: 0.4
       }
     };
@@ -191,21 +184,7 @@ export const analyzeHandwritingWithML = async (imageDataUrl: string): Promise<Ha
     img.onload = resolve;
   });
   
-  // Calculate scores based on image characteristics
-  // In a real implementation, this would be done by an ML model
-  
-  // For demonstration, we'll use image dimensions and data to generate pseudo-random but consistent scores
-  const imageComplexity = (img.width * img.height) % 100; // 0-99
-  const imageBrightness = calculateImageBrightness(img) % 100; // 0-99
-  
-  // Generate scores that are somewhat consistent for the same image
-  // but different enough to appear as real analysis
-  const letterFormationScore = Math.max(30, Math.min(95, (imageComplexity + 50) % 100));
-  const letterSpacingScore = Math.max(30, Math.min(95, (imageBrightness + 40) % 100));
-  const lineAlignmentScore = Math.max(30, Math.min(95, (imageComplexity + imageBrightness + 30) % 100));
-  const letterReversalsScore = Math.max(30, Math.min(95, (imageComplexity * 2 + 20) % 100));
-  
-  // Generate scores for new metrics based on OCR confidence
+  // Generate scores for text analysis metrics based on OCR confidence
   const ocrConfidence = ocrResult.confidence * 100;
   const phoneticAccuracyScore = Math.max(30, Math.min(95, ocrConfidence * 0.9));
   const spellingAccuracyScore = Math.max(30, Math.min(95, ocrConfidence * 0.85));
@@ -213,54 +192,14 @@ export const analyzeHandwritingWithML = async (imageDataUrl: string): Promise<Ha
   const correctionsCount = Math.floor((100 - ocrConfidence) / 10) + 1;
   
   // Calculate overall score as weighted average
-  // Based on research by International Dyslexia Association (IDA) and British Dyslexia Association (BDA)
-  // for the relative importance of different handwriting features in dyslexia assessment
   const overallScore = Math.round(
-    (letterFormationScore * 0.15) + 
-    (letterSpacingScore * 0.1) + 
-    (lineAlignmentScore * 0.1) + 
-    (letterReversalsScore * 0.2) + 
-    (phoneticAccuracyScore * 0.15) +
-    (spellingAccuracyScore * 0.15) +
-    (grammaticalAccuracyScore * 0.15)
+    (phoneticAccuracyScore * 0.4) + 
+    (spellingAccuracyScore * 0.35) + 
+    (grammaticalAccuracyScore * 0.25)
   );
   
-  // Research-based descriptions - derived from studies on dyslexic handwriting characteristics
-  // References: Frith (1985), Berninger & Wolf (2009), and Rosenblum et al. (2010)
   // Return analysis with descriptive text based on scores
   return {
-    letterFormation: {
-      score: letterFormationScore > 70 ? 4 : letterFormationScore > 50 ? 3 : letterFormationScore > 30 ? 2 : 1,
-      description: letterFormationScore > 70 
-        ? "Consistent and clear letter formation with good structure" 
-        : letterFormationScore > 50 
-        ? "Some inconsistency in letter formation, occasional unclear characters" 
-        : "Significant inconsistency in letter formation, many letters poorly formed"
-    },
-    letterSpacing: {
-      score: letterSpacingScore > 70 ? 4 : letterSpacingScore > 50 ? 3 : letterSpacingScore > 30 ? 2 : 1,
-      description: letterSpacingScore > 70 
-        ? "Consistent spacing between letters and words" 
-        : letterSpacingScore > 50 
-        ? "Some inconsistency in spacing between letters and words" 
-        : "Very inconsistent spacing; words and letters run together or are too far apart"
-    },
-    lineAlignment: {
-      score: lineAlignmentScore > 70 ? 5 : lineAlignmentScore > 50 ? 3 : lineAlignmentScore > 30 ? 2 : 1,
-      description: lineAlignmentScore > 70 
-        ? "Writing follows the line consistently" 
-        : lineAlignmentScore > 50 
-        ? "Writing occasionally drifts above or below the line" 
-        : "Writing frequently ignores line constraints, words float or sink"
-    },
-    letterReversals: {
-      score: letterReversalsScore > 70 ? 5 : letterReversalsScore > 50 ? 3 : letterReversalsScore > 30 ? 2 : 1,
-      description: letterReversalsScore > 70 
-        ? "No letter reversals or inversions detected" 
-        : letterReversalsScore > 50 
-        ? "Occasional letter reversals present (e.g., b/d, p/q)" 
-        : "Frequent letter reversals and inversions present"
-    },
     phoneticAccuracy: {
       score: phoneticAccuracyScore > 70 ? 5 : phoneticAccuracyScore > 50 ? 3 : phoneticAccuracyScore > 30 ? 2 : 1,
       description: phoneticAccuracyScore > 70
