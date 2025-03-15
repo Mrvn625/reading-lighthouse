@@ -25,6 +25,18 @@ const AssessmentSummary = ({
   checklistDetails, 
   handwritingDetails 
 }: AssessmentSummaryProps) => {
+  // Format the checklist age group for display
+  const formatAgeGroup = (ageGroup?: string) => {
+    if (!ageGroup) return "";
+    
+    switch(ageGroup) {
+      case "preschool": return " (Preschool)";
+      case "school_age": return " (School Age)";
+      case "adult": return " (Adult)";
+      default: return "";
+    }
+  };
+
   return (
     <Card className="mb-6">
       <CardHeader className="pb-2">
@@ -93,20 +105,22 @@ const AssessmentSummary = ({
             )}
             {checklistDetails && (
               <li>
-                Symptom Checklist: {checklistDetails.score >= 70 
-                  ? "Few reported dyslexia symptoms" 
-                  : checklistDetails.score >= 50 
+                Symptom Checklist{formatAgeGroup(checklistDetails.ageGroup)}: {checklistDetails.score >= 70 
+                  ? "Multiple reported dyslexia symptoms" 
+                  : checklistDetails.score >= 40 
                   ? "Some reported dyslexia symptoms" 
-                  : "Multiple reported dyslexia symptoms"}
+                  : "Few reported dyslexia symptoms"}
               </li>
             )}
             {handwritingDetails && (
               <li>
-                Handwriting Analysis: {handwritingDetails.overallScore >= 70 
+                Handwriting Text Analysis: {handwritingDetails.overallScore >= 70 
                   ? "Few dyslexic patterns in writing" 
                   : handwritingDetails.overallScore >= 50 
                   ? "Some dyslexic patterns in writing" 
                   : "Significant dyslexic patterns in writing"}
+                {handwritingDetails.confidenceDetails && 
+                  ` (Confidence: ${Math.round(handwritingDetails.confidenceDetails.overallQuality * 100)}%)`}
               </li>
             )}
           </ul>
