@@ -6,7 +6,23 @@
 
 // Types for handwriting analysis results
 export interface HandwritingAnalysisResult {
-  // Text analysis metrics only
+  letterFormation: {
+    score: number;
+    description: string;
+  };
+  letterSpacing: {
+    score: number;
+    description: string;
+  };
+  lineAlignment: {
+    score: number;
+    description: string;
+  };
+  letterReversals: {
+    score: number;
+    description: string;
+  };
+  // New metrics for OCR analysis
   phoneticAccuracy: {
     score: number;
     description: string;
@@ -25,7 +41,9 @@ export interface HandwritingAnalysisResult {
   };
   recognizedText: string;
   confidenceDetails?: {
+    letterFormation: number;
     wordRecognition: number;
+    lineAlignment: number;
     overallQuality: number;
   };
   overallScore: number;
@@ -33,6 +51,10 @@ export interface HandwritingAnalysisResult {
 
 // Feature extraction interfaces
 export interface HandwritingFeatures {
+  letterFormation: number;
+  letterSpacing: number;
+  lineAlignment: number;
+  letterReversals: number;
   phoneticAccuracy: number;
   spellingAccuracy: number;
   grammaticalAccuracy: number;
@@ -44,7 +66,9 @@ export interface OCRResult {
   text: string;
   confidence: number;
   confidenceDetails?: {
+    letterFormation: number;
     wordRecognition: number;
+    lineAlignment: number;
     overallQuality: number;
   };
 }
