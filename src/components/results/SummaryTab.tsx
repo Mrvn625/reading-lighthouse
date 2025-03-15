@@ -25,6 +25,18 @@ const SummaryTab = ({
 }: SummaryTabProps) => {
   const { toast } = useToast();
 
+  // Format the checklist age group for display
+  const formatAgeGroup = (ageGroup?: string) => {
+    if (!ageGroup) return "Unknown";
+    
+    switch(ageGroup) {
+      case "preschool": return "Preschool (Ages 3-5)";
+      case "school_age": return "School Age (Ages 6-17)";
+      case "adult": return "Adult (Ages 18+)";
+      default: return ageGroup;
+    }
+  };
+
   return (
     <Card>
       <CardContent className="p-6">
@@ -107,8 +119,8 @@ const SummaryTab = ({
                 title="Handwriting Analysis" 
                 score={handwritingResults.overallScore}
                 description={handwritingResults.overallScore >= 70 
-                  ? "Few dyslexia indicators in handwriting" 
-                  : "Shows dyslexia-related patterns in handwriting"}
+                  ? "Text analysis shows few dyslexia indicators" 
+                  : "Text analysis shows dyslexia-related patterns"}
                 date={handwritingResults.date}
               />
             )}
@@ -136,14 +148,36 @@ const SummaryTab = ({
             )}
 
             {checklistResults && (
-              <ResultBar 
-                title="Symptom Checklist" 
-                score={checklistResults.score}
-                description={checklistResults.score >= 70 
-                  ? "Few reported dyslexia symptoms" 
-                  : "Multiple reported dyslexia symptoms"}
-                date={checklistResults.date}
-              />
+              <div className="p-4 bg-dyslexai-blue-50 rounded-lg">
+                <ResultBar 
+                  title={`Symptom Checklist (${formatAgeGroup(checklistResults.ageGroup)})`}
+                  score={checklistResults.score}
+                  description={checklistResults.score >= 70 
+                    ? "Multiple reported dyslexia symptoms" 
+                    : checklistResults.score >= 40
+                    ? "Some reported dyslexia symptoms"
+                    : "Few reported dyslexia symptoms"}
+                  date={checklistResults.date}
+                />
+                
+                {checklistResults.categoryScores && (
+                  <div className="mt-4 pl-4 border-l-2 border-dyslexai-blue-200">
+                    <h5 className="text-sm font-medium text-dyslexai-blue-700 mb-2">Category Breakdown:</h5>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2">
+                      {Object.entries(checklistResults.categoryScores)
+                        .filter(([key]) => key !== "overall")
+                        .map(([key, value]) => (
+                          <div key={key} className="flex justify-between items-center">
+                            <span className="text-xs text-gray-600">
+                              {key.charAt(0).toUpperCase() + key.slice(1).replace(/_/g, ' ')}:
+                            </span>
+                            <span className="text-xs font-medium">{value}%</span>
+                          </div>
+                        ))}
+                    </div>
+                  </div>
+                )}
+              </div>
             )}
           </div>
         </div>
