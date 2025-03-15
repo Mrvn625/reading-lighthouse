@@ -196,12 +196,11 @@ const SummaryTab = ({
           </ul>
           
           <div className="mt-6 flex justify-center">
-            <Button className="dyslexai-btn-primary" onClick={() => toast({
-              title: "Resources Available",
-              description: "Check your full report for detailed recommendations",
-            })}>
-              View Full Report
-            </Button>
+            <Link to="/results?tab=report">
+              <Button className="dyslexai-btn-primary">
+                View Full Report
+              </Button>
+            </Link>
           </div>
         </div>
       </CardContent>

@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useRef } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import PageLayout from "@/components/layout/PageLayout";
@@ -81,15 +82,21 @@ const HandwritingAnalysis = () => {
       setSelectedFile(file);
       setAnalysisResult(null);
       
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        setPreviewUrl(e.target?.result as string);
+      // Create a revokable object URL for the file
+      const objectUrl = URL.createObjectURL(file);
+      setPreviewUrl(objectUrl);
+      
+      // Cleanup function to revoke the URL when no longer needed
+      return () => {
+        URL.revokeObjectURL(objectUrl);
       };
-      reader.readAsDataURL(file);
     }
   };
 
   const handleRemoveFile = () => {
+    if (previewUrl) {
+      URL.revokeObjectURL(previewUrl);
+    }
     setSelectedFile(null);
     setPreviewUrl(null);
     setAnalysisResult(null);

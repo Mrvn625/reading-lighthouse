@@ -16,7 +16,7 @@ type TestCardProps = {
   onClick?: () => void;
 };
 
-const TestCard = ({ title, description, duration, skills = [], buttonText, icon, completed = false, onStart, onClick }: TestCardProps) => {
+const TestCard = ({ title, description, duration, skills = [], buttonText = "Start Test", icon, completed = false, onStart, onClick }: TestCardProps) => {
   // Use onClick as a fallback for onStart for backward compatibility
   const handleAction = onStart || onClick;
   
@@ -71,7 +71,7 @@ const TestCard = ({ title, description, duration, skills = [], buttonText, icon,
           ) : (
             <>
               <PlayCircle className="mr-2 h-5 w-5" />
-              {buttonText || "Start Test"}
+              {buttonText}
             </>
           )}
         </Button>

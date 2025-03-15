@@ -1,5 +1,6 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import PageLayout from "@/components/layout/PageLayout";
 import PageHeader from "@/components/ui/page-header";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -11,6 +12,22 @@ import ChartsTab from "@/components/results/ChartsTab";
 import { useResultsData } from "@/components/results/useResultsData";
 
 const ResultsPage = () => {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const tabParam = searchParams.get("tab");
+  const [activeTab, setActiveTab] = useState("summary");
+
+  useEffect(() => {
+    // Set the active tab based on URL parameter if it exists
+    if (tabParam && ["summary", "charts", "report"].includes(tabParam)) {
+      setActiveTab(tabParam);
+    }
+  }, [tabParam]);
+
+  const handleTabChange = (value: string) => {
+    setActiveTab(value);
+    setSearchParams({ tab: value });
+  };
+
   const {
     testResults,
     userData,
@@ -36,7 +53,7 @@ const ResultsPage = () => {
           {Object.keys(testResults).length === 0 && !handwritingResults && !checklistResults ? (
             <EmptyResultsCard />
           ) : (
-            <Tabs defaultValue="summary" className="w-full">
+            <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
               <TabsList className="grid grid-cols-3 w-full mb-8">
                 <TabsTrigger value="summary">
                   <BarChart className="mr-2 h-4 w-4" />
