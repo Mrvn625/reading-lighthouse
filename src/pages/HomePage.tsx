@@ -1,93 +1,187 @@
 
 import { Link } from "react-router-dom";
 import PageLayout from "@/components/layout/PageLayout";
+import Section from "@/components/ui/section";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { BookOpen, BrainCircuit, CheckSquare, ArrowRight, FileText, PenTool, Percent } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Brain, FileText, Info, Book, ArrowRight } from "lucide-react";
 
 const HomePage = () => {
   return (
     <PageLayout>
-      <div className="flex flex-col items-center text-center">
-        <div className="max-w-3xl mx-auto px-4 py-12">
-          <h1 className="text-4xl md:text-5xl font-bold text-dyslexai-blue-800 mb-4">
-            Dyslexia Screening App
-          </h1>
-          <p className="text-xl text-gray-600 mb-8">
-            A comprehensive tool to help identify potential dyslexia indicators through multiple assessment methods
-          </p>
-          
-          <div className="mb-12">
-            <Link to="/profile">
-              <Button className="dyslexai-btn-primary text-lg py-6 px-8">
-                Start Assessment
-                <ArrowRight className="ml-2 h-5 w-5" />
-              </Button>
-            </Link>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
-            <FeatureCard 
-              icon={<Brain className="h-10 w-10 text-purple-500" />}
-              title="Cognitive Tests" 
-              description="Interactive assessments that measure phonological awareness, working memory, processing speed, and more"
-              link="/how-tests-work"
-              linkText="Learn How Tests Work"
-            />
-            <FeatureCard 
-              icon={<FileText className="h-10 w-10 text-dyslexai-blue-500" />}
-              title="Handwriting Analysis" 
-              description="Upload a handwriting sample to analyze patterns that may be associated with dyslexia"
-              link="/handwriting"
-              linkText="Try Handwriting Analysis"
-            />
-            <FeatureCard 
-              icon={<Book className="h-10 w-10 text-green-500" />}
-              title="Personalized Report" 
-              description="Get a detailed report with recommendations based on your results across all assessments"
-              link="/what-is-dyslexia"
-              linkText="About Dyslexia"
-            />
-          </div>
-          
-          <div className="bg-gray-50 rounded-xl p-6 text-left">
-            <div className="flex items-start">
-              <Info className="h-6 w-6 text-blue-500 mr-3 mt-0.5 flex-shrink-0" />
-              <div>
-                <h3 className="font-bold text-lg mb-2">Important Note</h3>
-                <p className="text-gray-700 mb-2">
-                  This app is designed as a screening tool only and is not a substitute for a professional evaluation or diagnosis. The results should be used as a starting point for understanding potential learning differences.
-                </p>
-                <p className="text-gray-700">
-                  If you have concerns about dyslexia or other learning differences, we recommend consulting with an educational psychologist, learning specialist, or other qualified professional.
-                </p>
-              </div>
+      <div className="dyslexai-container">
+        {/* Hero Section */}
+        <div className="flex flex-col md:flex-row items-center justify-between py-12 md:py-20">
+          <div className="md:w-1/2 mb-8 md:mb-0">
+            <h1 className="text-4xl md:text-5xl font-bold text-dyslexai-blue-800 mb-4">
+              Understand Dyslexia Better
+            </h1>
+            <p className="text-xl text-gray-600 mb-6">
+              Learn about dyslexia and assess potential signs with our interactive tests and educational resources
+            </p>
+            <div className="flex flex-wrap gap-4">
+              <Link to="/what-is-dyslexia">
+                <Button className="dyslexai-btn-primary">
+                  Learn About Dyslexia
+                  <BookOpen className="ml-2 h-5 w-5" />
+                </Button>
+              </Link>
+              <Link to="/how-tests-work">
+                <Button className="dyslexai-btn-outline">
+                  How Our Tests Work
+                  <ArrowRight className="ml-2 h-5 w-5" />
+                </Button>
+              </Link>
             </div>
           </div>
+          <div className="md:w-1/2 flex justify-center">
+            <img
+              src="https://images.unsplash.com/photo-1488590528505-98d2b5aba04b"
+              alt="Dyslexia Assessment"
+              className="rounded-lg shadow-lg max-w-full h-auto max-h-80 object-cover"
+            />
+          </div>
         </div>
+
+        {/* Features Section */}
+        <Section title="What We Offer">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <FeatureCard
+              icon={<BookOpen className="h-8 w-8 text-dyslexai-blue-500" />}
+              title="Educational Content"
+              description="Learn about dyslexia, its signs, and impact on learning and daily life."
+            />
+            <FeatureCard
+              icon={<BrainCircuit className="h-8 w-8 text-dyslexai-green-500" />}
+              title="Interactive Tests"
+              description="Take our science-based assessments to identify potential signs of dyslexia."
+            />
+            <FeatureCard
+              icon={<CheckSquare className="h-8 w-8 text-dyslexai-blue-500" />}
+              title="Personalized Results"
+              description="Get insights based on your assessment performance and next steps."
+            />
+          </div>
+        </Section>
+
+        {/* Tests Overview Section */}
+        <Section title="Our Assessment Tools">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            <TestCard
+              title="Checklist Analysis"
+              icon={<CheckSquare className="h-6 w-6 text-dyslexai-blue-500" />}
+              description="Answer questions about behavioral and learning patterns associated with dyslexia."
+              link="/checklist"
+            />
+            <TestCard
+              title="Handwriting Analysis"
+              icon={<PenTool className="h-6 w-6 text-dyslexai-green-500" />}
+              description="Upload or create a handwriting sample for pattern analysis."
+              link="/handwriting-analysis"
+            />
+            <TestCard
+              title="Cognitive Tests"
+              icon={<BrainCircuit className="h-6 w-6 text-dyslexai-blue-500" />}
+              description="Interactive assessments for phonological awareness, processing speed, and more."
+              link="/cognitive-tests"
+            />
+            <TestCard
+              title="What is Dyslexia"
+              icon={<BookOpen className="h-6 w-6 text-dyslexai-green-500" />}
+              description="Learn about dyslexia, its causes, and how it affects learning and daily life."
+              link="/what-is-dyslexia"
+            />
+            <TestCard
+              title="How Tests Work"
+              icon={<FileText className="h-6 w-6 text-dyslexai-blue-500" />}
+              description="Understand the science behind our assessment tools and testing methodology."
+              link="/how-tests-work"
+            />
+            <TestCard
+              title="Results Interpretation"
+              icon={<Percent className="h-6 w-6 text-dyslexai-green-500" />}
+              description="View your personalized assessment results and recommendations."
+              link="/results"
+            />
+          </div>
+        </Section>
+
+        {/* CTA Section */}
+        <Section>
+          <div className="bg-gradient-to-r from-dyslexai-blue-100 to-dyslexai-green-100 rounded-xl p-8 text-center">
+            <h2 className="text-2xl md:text-3xl font-bold text-dyslexai-blue-800 mb-4">
+              Ready to Start Your Assessment?
+            </h2>
+            <p className="text-lg text-gray-700 mb-6 max-w-2xl mx-auto">
+              Begin with our educational content to understand what dyslexia is, or jump directly to our assessment tools.
+            </p>
+            <div className="flex flex-wrap justify-center gap-4">
+              <Link to="/what-is-dyslexia">
+                <Button className="dyslexai-btn-primary">
+                  Learn First
+                  <BookOpen className="ml-2 h-5 w-5" />
+                </Button>
+              </Link>
+              <Link to="/checklist">
+                <Button className="dyslexai-btn-secondary">
+                  Start Assessment
+                  <CheckSquare className="ml-2 h-5 w-5" />
+                </Button>
+              </Link>
+            </div>
+          </div>
+        </Section>
       </div>
     </PageLayout>
   );
 };
 
-interface FeatureCardProps {
+type FeatureCardProps = {
+  icon: React.ReactNode;
+  title: string;
+  description: string;
+};
+
+const FeatureCard = ({ icon, title, description }: FeatureCardProps) => {
+  return (
+    <div className="dyslexai-card hover:shadow-lg transition-shadow duration-300">
+      <div className="flex flex-col items-center text-center">
+        <div className="mb-4">{icon}</div>
+        <h3 className="text-xl font-bold text-dyslexai-blue-700 mb-2">{title}</h3>
+        <p className="text-gray-600">{description}</p>
+      </div>
+    </div>
+  );
+};
+
+type TestCardProps = {
   icon: React.ReactNode;
   title: string;
   description: string;
   link: string;
-  linkText: string;
-}
+};
 
-const FeatureCard = ({ icon, title, description, link, linkText }: FeatureCardProps) => {
+const TestCard = ({ icon, title, description, link }: TestCardProps) => {
   return (
-    <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-200 flex flex-col">
-      <div className="mb-4">{icon}</div>
-      <h3 className="text-xl font-bold mb-2">{title}</h3>
-      <p className="text-gray-600 mb-4 flex-grow">{description}</p>
-      <Link to={link} className="text-dyslexai-blue-600 hover:text-dyslexai-blue-700 font-medium flex items-center justify-center">
-        {linkText}
-        <ArrowRight className="ml-1 h-4 w-4" />
-      </Link>
-    </div>
+    <Card className="overflow-hidden hover:shadow-md transition-shadow duration-300 h-full flex flex-col">
+      <CardHeader className="pb-2">
+        <div className="flex items-center gap-2">
+          {icon}
+          <CardTitle className="text-lg">{title}</CardTitle>
+        </div>
+      </CardHeader>
+      <CardContent className="flex-grow">
+        <CardDescription className="text-sm text-gray-600">{description}</CardDescription>
+      </CardContent>
+      <CardFooter>
+        <Link to={link} className="w-full">
+          <Button variant="outline" className="w-full">
+            Learn More
+            <ArrowRight className="ml-2 h-4 w-4" />
+          </Button>
+        </Link>
+      </CardFooter>
+    </Card>
   );
 };
 

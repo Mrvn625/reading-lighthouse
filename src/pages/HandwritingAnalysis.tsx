@@ -82,21 +82,15 @@ const HandwritingAnalysis = () => {
       setSelectedFile(file);
       setAnalysisResult(null);
       
-      // Create a revokable object URL for the file
-      const objectUrl = URL.createObjectURL(file);
-      setPreviewUrl(objectUrl);
-      
-      // Cleanup function to revoke the URL when no longer needed
-      return () => {
-        URL.revokeObjectURL(objectUrl);
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setPreviewUrl(e.target?.result as string);
       };
+      reader.readAsDataURL(file);
     }
   };
 
   const handleRemoveFile = () => {
-    if (previewUrl) {
-      URL.revokeObjectURL(previewUrl);
-    }
     setSelectedFile(null);
     setPreviewUrl(null);
     setAnalysisResult(null);
@@ -115,6 +109,7 @@ const HandwritingAnalysis = () => {
       const result = await analyzeHandwritingWithML(previewUrl);
       setAnalysisResult(result);
       
+      // Save the result to localStorage for later use in the results page
       const savedResults = localStorage.getItem("assessmentResults") 
         ? JSON.parse(localStorage.getItem("assessmentResults") || '{}') 
         : {};
@@ -148,6 +143,7 @@ const HandwritingAnalysis = () => {
     }
   };
 
+  // Format confidence percentage
   const formatConfidence = (value: number): string => {
     return `${(value * 100).toFixed(1)}%`;
   };
@@ -164,7 +160,7 @@ const HandwritingAnalysis = () => {
         <div className="max-w-4xl mx-auto">
           <Section title="How This Test Works">
             <p className="mb-4 text-gray-700 text-left">
-              Handwriting can provide valuable insights into potential indicators of dyslexia. Our analysis focuses on the content of your writing, examining spelling patterns, phonetic accuracy, and grammatical structure.
+              Handwriting can provide valuable insights into potential indicators of dyslexia. People with dyslexia often display certain patterns in their handwriting, such as letter reversals, inconsistent spacing, and difficulties with letter formation.
             </p>
             <p className="mb-4 text-gray-700 text-left">
               For this test, you'll need to upload a clear image of a handwriting sample. For best results, the sample should include at least 2-3 sentences written on lined paper.
@@ -271,6 +267,7 @@ const HandwritingAnalysis = () => {
               <div className="bg-white rounded-xl shadow-md p-6 border border-dyslexai-blue-100">
                 <h3 className="text-xl font-bold text-dyslexai-blue-700 mb-4">Handwriting Assessment</h3>
                 
+                {/* Confidence Details Section */}
                 {analysisResult.confidenceDetails && (
                   <div className="mb-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
                     <div className="flex items-center justify-between mb-2">
@@ -283,7 +280,19 @@ const HandwritingAnalysis = () => {
                       </div>
                     </div>
                     
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-2">
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-2">
+                      <div>
+                        <p className="text-xs text-gray-500 mb-1">Letter Formation</p>
+                        <div className="flex items-center">
+                          <Progress 
+                            value={analysisResult.confidenceDetails.letterFormation * 100} 
+                            className="h-2 flex-grow mr-2" 
+                          />
+                          <span className="text-xs font-medium">
+                            {formatConfidence(analysisResult.confidenceDetails.letterFormation)}
+                          </span>
+                        </div>
+                      </div>
                       <div>
                         <p className="text-xs text-gray-500 mb-1">Word Recognition</p>
                         <div className="flex items-center">
@@ -296,11 +305,58 @@ const HandwritingAnalysis = () => {
                           </span>
                         </div>
                       </div>
+                      <div>
+                        <p className="text-xs text-gray-500 mb-1">Line Alignment</p>
+                        <div className="flex items-center">
+                          <Progress 
+                            value={analysisResult.confidenceDetails.lineAlignment * 100} 
+                            className="h-2 flex-grow mr-2" 
+                          />
+                          <span className="text-xs font-medium">
+                            {formatConfidence(analysisResult.confidenceDetails.lineAlignment)}
+                          </span>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 )}
                 
                 <div className="space-y-6">
+                  {/* Traditional Metrics */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <ResultItem
+                      title="Letter Formation"
+                      score={analysisResult.letterFormation.score}
+                      maxScore={5}
+                      description={analysisResult.letterFormation.description}
+                    />
+                    
+                    <ResultItem
+                      title="Letter Spacing"
+                      score={analysisResult.letterSpacing.score}
+                      maxScore={5}
+                      description={analysisResult.letterSpacing.description}
+                    />
+                    
+                    <ResultItem
+                      title="Line Alignment"
+                      score={analysisResult.lineAlignment.score}
+                      maxScore={5}
+                      description={analysisResult.lineAlignment.description}
+                    />
+                    
+                    <ResultItem
+                      title="Letter Reversals"
+                      score={analysisResult.letterReversals.score}
+                      maxScore={5}
+                      description={analysisResult.letterReversals.description}
+                    />
+                  </div>
+                  
+                  {/* Divider */}
+                  <div className="border-t border-gray-200 my-4"></div>
+                  
+                  {/* OCR-based Metrics */}
                   <h4 className="font-bold text-dyslexai-blue-700 mb-2">Text Analysis</h4>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <ResultItem
@@ -336,6 +392,7 @@ const HandwritingAnalysis = () => {
                   </div>
                 </div>
 
+                {/* Score calculation details */}
                 <div className="mt-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
                   <h4 className="font-bold text-dyslexai-blue-700 mb-2">Score Calculation</h4>
                   <p className="text-gray-700 text-sm mb-2 text-left">
@@ -344,9 +401,11 @@ const HandwritingAnalysis = () => {
                   <div className="text-sm text-gray-600 text-left">
                     <p className="mb-1"><strong>Formula used:</strong></p>
                     <ul className="list-disc pl-5 space-y-1">
-                      <li>Spelling Accuracy: {analysisResult.spellingAccuracy.score * 8}% (40% weight)</li>
-                      <li>Phonetic Accuracy: {analysisResult.phoneticAccuracy.score * 7}% (35% weight)</li>
-                      <li>Grammatical Structure: {analysisResult.grammaticalAccuracy.score * 5}% (25% weight)</li>
+                      <li>Letter Formation: {analysisResult.letterFormation.score * 4}% (20% weight)</li>
+                      <li>Letter Spacing: {analysisResult.letterSpacing.score * 4}% (20% weight)</li>
+                      <li>Line Alignment: {analysisResult.lineAlignment.score * 3}% (15% weight)</li>
+                      <li>Letter Reversals: {analysisResult.letterReversals.score * 5}% (25% weight)</li>
+                      <li>Spelling & Phonetic Accuracy: {(analysisResult.spellingAccuracy.score + analysisResult.phoneticAccuracy.score) * 2}% (20% weight)</li>
                     </ul>
                   </div>
                 </div>
@@ -360,12 +419,12 @@ const HandwritingAnalysis = () => {
                     {analysisResult.overallScore >= 75 ? 
                       "Your handwriting shows few patterns associated with dyslexia. If you're still concerned, continue with our other assessments to gather more information." :
                       analysisResult.overallScore >= 50 ?
-                      "Your handwriting shows some patterns that are sometimes associated with dyslexia, particularly in spelling and phonetic accuracy. These results suggest it may be worth exploring further assessment options." :
-                      "Your handwriting shows several patterns strongly associated with dyslexia, including spelling inconsistencies and phonetic challenges. We recommend completing our other assessments and considering professional evaluation."
+                      "Your handwriting shows some patterns that are sometimes associated with dyslexia, particularly in letter formation and spacing. These results suggest it may be worth exploring further assessment options." :
+                      "Your handwriting shows several patterns strongly associated with dyslexia, including letter reversals and inconsistent spacing. We recommend completing our other assessments and considering professional evaluation."
                     }
                   </p>
                   <p className="text-sm text-gray-600 text-left">
-                    <strong>Research basis:</strong> Analysis thresholds are based on studies by the International Dyslexia Association guidelines.
+                    <strong>Research basis:</strong> Analysis thresholds are based on studies by Berninger & Wolf (2009), Rosenblum et al. (2010), and the International Dyslexia Association guidelines.
                   </p>
                 </div>
                 
@@ -384,6 +443,18 @@ const HandwritingAnalysis = () => {
           <Section title="What We're Looking For">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 my-6">
               <FeatureCard
+                title="Letter Reversals"
+                description="Frequency of backwards or inverted letters like 'b/d', 'p/q', or 's/z'"
+              />
+              <FeatureCard
+                title="Spacing Issues"
+                description="Inconsistent spacing between letters, words, or lines"
+              />
+              <FeatureCard
+                title="Letter Formation"
+                description="Inconsistency in how letters are shaped and formed"
+              />
+              <FeatureCard
                 title="Phonetic Spelling"
                 description="Spelling words as they sound, rather than according to conventional spelling"
               />
@@ -394,10 +465,6 @@ const HandwritingAnalysis = () => {
               <FeatureCard
                 title="Corrections & Revisions"
                 description="Frequency of cross-outs, overwritten letters, or added insertions"
-              />
-              <FeatureCard
-                title="Spelling Consistency"
-                description="Consistent application of spelling rules across similar words"
               />
             </div>
             

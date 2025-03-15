@@ -2,24 +2,17 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { CheckCircle2, PlayCircle } from "lucide-react";
-import { ReactNode } from "react";
 
 type TestCardProps = {
   title: string;
   description: string;
   duration: string;
-  skills?: string[];
-  buttonText?: string;
-  icon?: ReactNode;
+  skills: string[];
   completed?: boolean;
-  onStart?: () => void;
-  onClick?: () => void;
+  onStart: () => void;
 };
 
-const TestCard = ({ title, description, duration, skills = [], buttonText = "Start Test", icon, completed = false, onStart, onClick }: TestCardProps) => {
-  // Use onClick as a fallback for onStart for backward compatibility
-  const handleAction = onStart || onClick;
-  
+const TestCard = ({ title, description, duration, skills, completed = false, onStart }: TestCardProps) => {
   return (
     <Card className="overflow-hidden transition-shadow duration-300 hover:shadow-md">
       <CardHeader className="pb-2">
@@ -41,27 +34,24 @@ const TestCard = ({ title, description, duration, skills = [], buttonText = "Sta
             {duration}
           </span>
         </div>
-        {icon && <div className="flex justify-center mb-4">{icon}</div>}
-        {skills.length > 0 && (
-          <div>
-            <h4 className="font-medium mb-2">Skills Assessed:</h4>
-            <ul className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-              {skills.map((skill, index) => (
-                <li key={index} className="flex items-center">
-                  <div className="w-2 h-2 rounded-full bg-dyslexai-blue-400 mr-2"></div>
-                  <span className="text-sm">{skill}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
+        <div>
+          <h4 className="font-medium mb-2">Skills Assessed:</h4>
+          <ul className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+            {skills.map((skill, index) => (
+              <li key={index} className="flex items-center">
+                <div className="w-2 h-2 rounded-full bg-dyslexai-blue-400 mr-2"></div>
+                <span className="text-sm">{skill}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
       </CardContent>
       <CardFooter>
         <Button
           className={`w-full flex items-center justify-center ${
             completed ? "bg-green-500 hover:bg-green-600" : ""
           }`}
-          onClick={handleAction}
+          onClick={onStart}
         >
           {completed ? (
             <>
@@ -71,7 +61,7 @@ const TestCard = ({ title, description, duration, skills = [], buttonText = "Sta
           ) : (
             <>
               <PlayCircle className="mr-2 h-5 w-5" />
-              {buttonText}
+              Start Test
             </>
           )}
         </Button>
