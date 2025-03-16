@@ -47,12 +47,20 @@ const DyslexiaReport = ({ userData, testResults, recommendations, handwritingDet
       description: "Your report is being generated...",
     });
 
+    // Enhanced PDF options for professional look
     const opt = {
-      margin: [10, 10, 10, 10],
+      margin: [15, 15, 15, 15], // Increased margins
       filename: `dyslexia-report-${userData.name.toLowerCase().replace(/\s+/g, '-')}.pdf`,
-      image: { type: 'jpeg', quality: 0.98 },
-      html2canvas: { scale: 2, useCORS: true },
-      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+      image: { type: 'jpeg', quality: 1.0 }, // Increased image quality
+      html2canvas: { scale: 2.5, useCORS: true, letterRendering: true }, // Improved rendering
+      jsPDF: { 
+        unit: 'mm', 
+        format: 'a4', 
+        orientation: 'portrait',
+        compress: true, // Better compression
+        precision: 16 // Higher precision
+      },
+      pagebreak: { mode: 'avoid-all', before: '.page-break' } // Better page breaks
     };
 
     html2pdf().set(opt).from(reportRef.current).save().then(() => {
@@ -71,7 +79,45 @@ const DyslexiaReport = ({ userData, testResults, recommendations, handwritingDet
     <div>
       <ReportHeader onPrint={handlePrint} onDownloadPdf={handleDownloadPdf} />
       
-      <div ref={reportRef} className="p-6 max-w-4xl mx-auto bg-white print:p-0">
+      <div ref={reportRef} className="p-6 max-w-4xl mx-auto bg-white print:p-0 professional-report">
+        <style dangerouslySetInnerHTML={{
+          __html: `
+            @media print {
+              .professional-report {
+                font-family: 'Georgia', serif;
+                color: #222222;
+              }
+              .professional-report h1, 
+              .professional-report h2, 
+              .professional-report h3 {
+                color: #403E43;
+                font-weight: 600;
+              }
+              .professional-report table {
+                border-collapse: collapse;
+                width: 100%;
+              }
+              .professional-report th {
+                background-color: #F6F6F7;
+                color: #221F26;
+                text-align: left;
+                padding: 12px;
+                border: 1px solid #C8C8C9;
+              }
+              .professional-report td {
+                padding: 10px;
+                border: 1px solid #C8C8C9;
+              }
+              .professional-report tr:nth-child(even) {
+                background-color: #F1F1F1;
+              }
+              .page-break {
+                page-break-after: always;
+              }
+            }
+          `
+        }} />
+        
         <ReportHeading userData={userData} />
         
         <AssessmentSummary 
@@ -81,6 +127,8 @@ const DyslexiaReport = ({ userData, testResults, recommendations, handwritingDet
           checklistDetails={checklistDetails}
           handwritingDetails={handwritingDetails}
         />
+        
+        <div className="page-break"></div>
         
         <TestResultsSection testResults={testResults} />
         

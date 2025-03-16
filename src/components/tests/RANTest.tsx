@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef } from "react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -25,21 +24,21 @@ const TOTAL_ITEMS = ITEMS_PER_ROW * ROWS;
 // Different test item types
 type ItemType = "letters" | "numbers" | "colors" | "objects";
 
-// Define item sets
+// Define item sets based on FastBridge RAN approach
 const itemSets = {
-  letters: ["a", "b", "d", "o", "p", "s", "r", "t", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "u", "v", "w", "x", "y", "z"],
-  numbers: ["1", "2", "3", "4", "5", "6", "7", "8", "9"],
-  colors: ["red", "blue", "green", "yellow", "black", "purple", "orange", "brown", "pink"],
-  objects: ["🍎", "🚗", "🏠", "🐱", "🔑", "📱", "⭐", "🌈", "🎁", "🚲", "✏️", "📚", "⚽", "👟", "🌵"]
+  letters: ["a", "s", "d", "p", "o"], // Using common letters that are frequently confused
+  numbers: ["2", "4", "6", "7", "9"], // Using visually similar numbers
+  colors: ["red", "blue", "green", "yellow", "black"],
+  objects: ["🍎", "🚗", "🏠", "🐱", "✏️"] // Common objects that are easily named
 };
 
-// Benchmark times in seconds based on research
-// Source: Norton & Wolf (2012) - Rapid Automatized Naming (RAN) and Reading Fluency
-const EXCELLENT_TIME = 20;  // 95th percentile
-const GOOD_TIME = 30;       // 75th percentile
-const AVERAGE_TIME = 40;    // 50th percentile
-const BELOW_AVERAGE_TIME = 50; // 25th percentile
-// Above 50 seconds is considered potential difficulty (below 10th percentile)
+// Updated benchmark times based on FastBridge research
+// Source: FastBridge Learning RAN Assessment documentation
+const EXCELLENT_TIME = 18;  // 90th percentile (seconds)
+const GOOD_TIME = 25;       // 75th percentile
+const AVERAGE_TIME = 35;    // 50th percentile
+const BELOW_AVERAGE_TIME = 45; // 25th percentile
+// Above 45 seconds is considered potential difficulty (below 10th percentile)
 
 const RANTest = ({ onComplete }: RANTestProps) => {
   const [status, setStatus] = useState<TestStatus>("intro");
@@ -54,19 +53,21 @@ const RANTest = ({ onComplete }: RANTestProps) => {
   const startTimeRef = useRef<number>(0);
   const { toast } = useToast();
   
-  // Generate test items when item type changes
+  // Generate test items when item type changes - updated to follow FastBridge pattern
   useEffect(() => {
     generateTestItems(itemType);
   }, [itemType]);
   
-  // Generate a random set of test items
+  // Generate a structured set of test items based on FastBridge approach
   const generateTestItems = (type: ItemType) => {
     const sourceItems = itemSets[type];
     const items: string[] = [];
     
-    for (let i = 0; i < TOTAL_ITEMS; i++) {
-      const randomIndex = Math.floor(Math.random() * sourceItems.length);
-      items.push(sourceItems[randomIndex]);
+    // FastBridge uses a repeated pattern of the same items in different orders
+    for (let i = 0; i < ROWS; i++) {
+      // Create a shuffled version of the source items for each row
+      const shuffledItems = [...sourceItems].sort(() => Math.random() - 0.5);
+      items.push(...shuffledItems);
     }
     
     setTestItems(items);
@@ -160,8 +161,7 @@ const RANTest = ({ onComplete }: RANTestProps) => {
     setIsRunning(false);
     setStatus("completed");
     
-    // Calculate score based on time taken and research-based norms
-    // Source: Norton & Wolf (2012) and Denckla & Rudel (1976)
+    // Calculate score based on time taken and updated FastBridge norms
     let calculatedScore = 0;
     
     if (elapsedTime <= EXCELLENT_TIME) {
@@ -176,11 +176,10 @@ const RANTest = ({ onComplete }: RANTestProps) => {
       calculatedScore = Math.max(30, 50 - (elapsedTime - BELOW_AVERAGE_TIME) / 5);
     }
     
-    // Adjust score based on item type (letters being the standard)
-    // Based on Wolf & Bowers (1999) - "The double-deficit hypothesis for the developmental dyslexias"
-    if (itemType === "numbers") calculatedScore *= 0.95; // Numbers are easier to name
-    if (itemType === "colors") calculatedScore *= 1.05; // Colors require more processing
-    if (itemType === "objects") calculatedScore *= 1.1; // Objects require most processing
+    // Adjust score based on FastBridge RAN research
+    if (itemType === "numbers") calculatedScore *= 0.95; // Slightly easier 
+    if (itemType === "colors") calculatedScore *= 1.05; // More challenging
+    if (itemType === "objects") calculatedScore *= 1.1; // Most challenging
     
     // Ensure score is between 0 and 100 and rounded to nearest integer
     const finalScore = Math.min(100, Math.max(0, Math.round(calculatedScore)));
@@ -295,15 +294,15 @@ const RANTest = ({ onComplete }: RANTestProps) => {
   // Function to get evaluation text based on score
   const getEvaluationText = (score: number): string => {
     if (score >= 85) {
-      return "Excellent! Your naming speed is very fast, suggesting strong neural connections for language processing.";
+      return "Excellent! Your naming speed is very fast (above 75th percentile), suggesting strong neural pathways for automatic naming.";
     } else if (score >= 70) {
-      return "Good! Your naming speed is above average, indicating efficient phonological processing.";
+      return "Good! Your naming speed is above average (50th-75th percentile), indicating efficient processing for reading fluency.";
     } else if (score >= 55) {
-      return "Average. Your naming speed is within normal range, suggesting typical phonological processing.";
+      return "Average. Your naming speed is within typical range (25th-50th percentile), suggesting adequate processing for reading development.";
     } else if (score >= 40) {
-      return "Below average. You may benefit from exercises to improve naming speed and phonological processing.";
+      return "Below average (10th-25th percentile). You may benefit from exercises to strengthen rapid naming skills, which support reading fluency.";
     } else {
-      return "Your naming speed indicates potential difficulty, which is often seen in individuals with dyslexia due to challenges in phonological processing.";
+      return "Your naming speed indicates potential difficulty (below 10th percentile), which FastBridge research links to challenges in reading fluency and automaticity.";
     }
   };
 

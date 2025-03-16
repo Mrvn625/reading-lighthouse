@@ -1,4 +1,3 @@
-
 import { Card, CardContent } from "@/components/ui/card";
 import { 
   LineChart, 
@@ -23,7 +22,7 @@ import {
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useState } from "react";
-import { InfoCircle } from "lucide-react";
+import { Info } from "lucide-react";
 
 interface ChartsTabProps {
   generateChartData: () => Array<{
@@ -37,26 +36,25 @@ const ChartsTab = ({ generateChartData }: ChartsTabProps) => {
   const [chartType, setChartType] = useState("bar");
   const chartData = generateChartData();
   
-  // Define chart colors
   const config = {
     score: {
       label: "Your Score",
       theme: {
-        light: "#3b82f6", // Blue color for scores
+        light: "#3b82f6",
         dark: "#60a5fa",
       }
     },
     threshold: {
       label: "Research Threshold",
       theme: {
-        light: "#94a3b8", // Gray color for threshold
+        light: "#94a3b8",
         dark: "#64748b",
       }
     },
     area: {
       label: "Performance Area",
       theme: {
-        light: "rgba(59, 130, 246, 0.2)", // Transparent blue for area
+        light: "rgba(59, 130, 246, 0.2)",
         dark: "rgba(96, 165, 250, 0.3)",
       }
     }
@@ -295,7 +293,7 @@ const ChartsTab = ({ generateChartData }: ChartsTabProps) => {
         <div className="space-y-4">
           <div className="bg-gray-50 p-4 rounded-lg">
             <h4 className="font-semibold text-dyslexai-blue-700 mb-2 flex items-center">
-              <InfoCircle className="h-4 w-4 mr-2" />
+              <Info className="h-4 w-4 mr-2" />
               Understanding Your Chart
             </h4>
             <p className="text-sm text-gray-600">

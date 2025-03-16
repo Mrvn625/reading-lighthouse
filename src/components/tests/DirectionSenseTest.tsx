@@ -13,34 +13,35 @@ interface DirectionQuestion {
   explanation?: string;
 }
 
+// Updated questions to be more meaningful and test directional understanding
 const directionQuestions: DirectionQuestion[] = [
   {
     id: 1,
-    instruction: "Which arrow points to the RIGHT?",
+    instruction: "When writing English, in which direction do you move your pen?",
     correctAnswer: "right",
     options: ["left", "right", "up", "down"],
-    explanation: "The right arrow points to the right side of the screen."
+    explanation: "English writing moves from left to right."
   },
   {
     id: 2,
-    instruction: "Which arrow points to the LEFT?",
-    correctAnswer: "left",
+    instruction: "If you're standing facing a clock, which direction would you turn to go from 12 to 3?",
+    correctAnswer: "right",
     options: ["left", "right", "up", "down"],
-    explanation: "The left arrow points to the left side of the screen."
+    explanation: "On a clock face, moving from 12 to 3 is a right/clockwise movement."
   },
   {
     id: 3,
-    instruction: "Which arrow points UP?",
-    correctAnswer: "up",
+    instruction: "When reading Hebrew or Arabic text, which way do your eyes move?",
+    correctAnswer: "left",
     options: ["left", "right", "up", "down"],
-    explanation: "The up arrow points to the top of the screen."
+    explanation: "Hebrew and Arabic are read from right to left, so your eyes move leftward."
   },
   {
     id: 4,
-    instruction: "Which arrow points DOWN?",
-    correctAnswer: "down",
+    instruction: "If you're facing north and want to head west, which way would you turn?",
+    correctAnswer: "left",
     options: ["left", "right", "up", "down"],
-    explanation: "The down arrow points to the bottom of the screen."
+    explanation: "When facing north, west is to your left side."
   },
   {
     id: 5,
